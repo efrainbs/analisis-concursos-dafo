@@ -1,0 +1,10 @@
+{
+  "alwaysUpdateLinks": true,
+  "attachmentFolderPath": "validacion_pdfs",
+  "newFileLocation": "root",
+  "vimMode": false,
+  "showLineNumber": true,
+  "spellcheck": false,
+  "strictLineBreaks": true,
+  "useTab": false
+}

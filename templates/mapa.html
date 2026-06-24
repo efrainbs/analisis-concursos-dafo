@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mapa de proyectos audiovisuales</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+(function() {
+  var t = localStorage.getItem('dafo-theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+<style>
+:root {
+  --neutral-100: #0D1B2A; --neutral-80: #384450; --neutral-60: #777F87;
+  --neutral-40: #E1E3E5; --neutral-30: #F0F1F2; --neutral-20: #FAFBFB;
+  --neutral-0: #FFF; --primary: #E80247;
+  --footer-bg: #0D1B2A; --footer-border: #2E3A47;
+  --body-font: 'Work Sans', sans-serif; --mono-font: 'IBM Plex Mono', monospace;
+}
+[data-theme="dark"] {
+  --neutral-100: #FFF; --neutral-80: #BBBFC3; --neutral-60: #92989F;
+  --neutral-40: #2E3A47; --neutral-30: #1D2A38; --neutral-20: #152231;
+  --neutral-0: #0D1B2A; --primary: #FF4775;
+  --footer-bg: #0E1D2E; --footer-border: #1D2A38;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: var(--body-font); background: var(--neutral-0); color: var(--neutral-100); -webkit-font-smoothing: antialiased; font-size: 100%; font-weight: 400; line-height: 1.5; }
+a { color: inherit; text-decoration: none; }
+.wrap { max-width: 90vw; margin: 0 auto; padding: 0 0.5rem; }
+.hidden { display: none !important; }
+input, select, textarea, button, .btn { border-radius: 4px; }
+.c-header { position: sticky; top: 0; z-index: 100; border-bottom: 1px solid var(--neutral-40); background: var(--neutral-0); }
+.c-header__content { max-width: 90vw; margin: 0 auto; padding: 0 0.5rem; display: flex; align-items: center; justify-content: space-between; height: 50px; }
+.c-header__left { display: flex; align-items: center; gap: 2.5rem; }
+.c-main-logo { display: flex; align-items: center; }
+.c-main-logo svg { height: 28px; width: auto; }
+.c-header__right { display: flex; align-items: center; gap: 1rem; font-size: 14px; color: var(--neutral-60); }
+.c-header__right a { color: var(--neutral-60); transition: color 0.15s; }
+.c-header__right a:hover { color: var(--neutral-100); }
+.c-header__nav { display: flex; gap: 1.5rem; font-size: 14px; }
+.c-header__nav a { color: var(--neutral-60); transition: color 0.15s; }
+.c-header__nav a:hover, .c-header__nav a.active { color: var(--neutral-100); font-weight: 600; }
+.c-header__lang { display: flex; align-items: center; gap: 0.4rem; }
+.c-header__lang .active-lang { color: var(--primary); font-weight: 600; }
+.c-header__lang .sep { color: var(--neutral-40); }
+.page-title { font-family: var(--body-font); font-size: 80px; font-weight: 400; color: var(--neutral-100); margin: 0.6rem 0 0.3rem 0; letter-spacing: -0.02em; line-height: 1; text-transform: uppercase; position: sticky; top: 50px; z-index: 90; background: var(--neutral-0); padding: 0.6rem 0 0.3rem 0; }
+.page-title::after { content: ''; position: absolute; left: 0; right: 0; bottom: -60px; height: 60px; background: linear-gradient(to bottom, var(--neutral-0), transparent); pointer-events: none; z-index: 1; }
+.filter-label { font-size: 14px; color: var(--neutral-60); margin: 0.5rem 0 0.25rem 0; }
+.filter-row { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+.filter-row label { font-size: 14px; color: var(--neutral-60); }
+.filter-row select { border: 1px solid var(--neutral-40); padding: 0.4rem 0.6rem; font-size: 14px; font-family: var(--mono-font); background: var(--neutral-0); outline: none; cursor: pointer; min-width: 90px; color: var(--neutral-100); }
+.filter-row select:focus { border-color: var(--neutral-80); }
+.btn { border: 1px solid var(--neutral-40); padding: 0.45rem 1.5rem; font-size: 14px; font-family: var(--mono-font); background: var(--neutral-0); cursor: pointer; transition: all 0.15s; color: var(--neutral-100); }
+.btn:hover { border-color: var(--neutral-80); background: var(--neutral-20); }
+.btn-primary { background: var(--neutral-100); color: var(--neutral-0); border-color: var(--neutral-100); }
+.btn-primary:hover { background: var(--neutral-80); border-color: var(--neutral-80); }
+.adv-box { border: 1px solid var(--neutral-40); padding: 1.5rem; margin: 0.5rem 0 1rem 0; background: var(--neutral-20); }
+.adv-box-title { font-size: 14px; color: var(--neutral-60); margin: 0 0 1rem 0; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; font-family: var(--mono-font); }
+.adv-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.2rem; }
+.adv-label { font-size: 14px; color: var(--neutral-60); margin: 0 0 0.3rem 0; font-family: var(--mono-font); }
+.adv-grid select, .adv-grid input { width: 100%; border: 1px solid var(--neutral-40); padding: 0.4rem 0.5rem; font-size: 14px; font-family: var(--mono-font); background: var(--neutral-0); outline: none; color: var(--neutral-100); }
+.adv-grid select:focus, .adv-grid input:focus { border-color: var(--neutral-80); }
+.adv-actions { margin-top: 1rem; display: flex; gap: 0.5rem; }
+.footer { background: var(--footer-bg); color: var(--neutral-60); margin-top: 1.5rem; padding: 1.5rem 0 1rem 0; font-size: 14px; }
+.footer-grid { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 1.5rem; }
+.footer h4 { color: var(--neutral-0); font-size: 21px; font-weight: 400; margin: 0 0 0.3rem 0; letter-spacing: -0.01em; text-transform: uppercase; }
+.footer h5 { color: var(--neutral-0); font-weight: 600; margin: 0 0 0.3rem 0; font-size: 16px; text-transform: none; }
+.footer p { margin: 0.1rem 0; }
+.footer .dim { color: var(--neutral-80); }
+.footer a { color: var(--neutral-60); transition: color 0.15s; }
+.footer a:hover { color: var(--neutral-0); }
+.footer-bottom { text-align: center; margin-top: 1rem; border-top: 1px solid var(--footer-border); padding-top: 0.8rem; font-size: 14px; color: var(--neutral-80); }
+.theme-toggle { display: inline-flex; align-items: center; gap: 0.4rem; cursor: pointer; background: none; border: none; padding: 0.3rem; color: var(--neutral-60); font-size: 14px; font-family: var(--mono-font); transition: color 0.15s; }
+.theme-toggle:hover { color: var(--neutral-100); }
+.theme-toggle i { font-size: 16px; }
+[data-theme="dark"] .theme-toggle .icon-sun { display: inline; }
+[data-theme="dark"] .theme-toggle .icon-moon { display: none; }
+.theme-toggle .icon-sun { display: none; }
+.theme-toggle .icon-moon { display: inline; }
+#map { height: 600px; border: 1px solid var(--neutral-40); border-radius: 4px; margin: 1.5rem 0; z-index: 1; }
+.info { padding: 6px 10px; font: 13px/1.4 var(--body-font); background: var(--neutral-0); border: 1px solid var(--neutral-40); border-radius: 4px; }
+.info h4 { margin: 0 0 4px; font-size: 14px; font-weight: 600; }
+.legend { line-height: 20px; color: var(--neutral-80); padding: 6px 10px; background: var(--neutral-0); border: 1px solid var(--neutral-40); border-radius: 4px; font: 12px var(--mono-font); }
+.legend i { width: 16px; height: 16px; float: left; margin-right: 6px; opacity: 0.9; }
+.checkbox-grid { display: flex; flex-wrap: wrap; gap: 0.25rem; max-height: 7rem; overflow-y: auto; }
+.checkbox-grid label { font-size: 14px; display: flex; align-items: center; gap: 0.25rem; white-space: nowrap; cursor: pointer; color: var(--neutral-80); font-family: var(--mono-font); }
+.checkbox-grid label:hover { color: var(--neutral-100); }
+.checkbox-grid label .count { color: var(--neutral-60); font-size: 14px; font-family: var(--mono-font); margin-left: 0.25rem; }
+.checkbox-grid label.zero { color: var(--neutral-40); }
+.adv-toggle { font-size: 14px; color: var(--neutral-60); cursor: pointer; margin: 0.6rem 0; display: inline-block; background: none; border: none; padding: 0; border-bottom: 1px dotted var(--neutral-40); font-family: var(--body-font); }
+.adv-toggle:hover { color: var(--neutral-100); border-bottom-color: var(--neutral-60); }
+.results-count { font-size: 16px; color: var(--neutral-60); margin: 0.8rem 0 0 0; }
+.results-count strong { color: var(--neutral-100); font-weight: 600; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="c-header">
+<div class="c-header__content">
+    <div class="c-header__left">
+        <div class="c-main-logo">
+            <a href="/" aria-label="Go to the home page">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 40" fill="none">
+                    <text x="0" y="30" font-family="'Work Sans',sans-serif" font-weight="700" font-size="20" fill="currentColor">Mapa de proyectos audiovisuales</text>
+                </svg>
+            </a>
+        </div>
+        <nav class="c-header__nav">
+            <a href="/">Proyectos</a>
+            <a href="/dashboard">Dashboard</a>
+            <a href="/mapa" class="active">Mapa</a>
+        </nav>
+    </div>
+    <div class="c-header__right">
+        <button type="button" class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle dark mode">
+            <i class="fa-regular fa-sun icon-sun"></i>
+            <i class="fa-regular fa-moon icon-moon"></i>
+        </button>
+        <div class="c-header__lang">
+            <span class="active-lang">es</span>
+            <span class="sep">|</span>
+            <a href="#">Cinefilia Ritrovata</a>
+        </div>
+    </div>
+</div>
+</header>
+
+<!-- MAIN -->
+<div class="wrap">
+
+    <h1 class="page-title">Mapa</h1>
+    <p style="font-size:16px;color:var(--neutral-60);margin:0 0 1rem 0">
+        Proyectos por departamento. Intensidad de color = cantidad de proyectos.
+    </p>
+
+    <!-- FILTERS -->
+    <form id="map-filters" autocomplete="off">
+
+        <p class="filter-label">Edición</p>
+        <div class="filter-row">
+            <label for="yf">Desde</label>
+            <select name="yf" id="yf">
+                {% for a in anios %}
+                <option value="{{ a }}" {{ 'selected' if yf == a }}>{{ a }}</option>
+                {% endfor %}
+            </select>
+            <label for="yt">Hasta</label>
+            <select name="yt" id="yt">
+                {% for a in anios %}
+                <option value="{{ a }}" {{ 'selected' if yt == a }}>{{ a }}</option>
+                {% endfor %}
+            </select>
+            <label for="la">Estímulo</label>
+            <select name="la" id="la">
+                <option value="">Todos</option>
+                {% for l in lineas %}
+                <option value="{{ l }}" {{ 'selected' if l in la and la|length == 1 }}>{{ lineas_dict.get(l, l) }}</option>
+                {% endfor %}
+            </select>
+            <label for="rf">Región</label>
+            <select name="rf" id="rf">
+                <option value="">Todas</option>
+                {% for r in regiones %}
+                <option value="{{ r }}" {{ 'selected' if r in rf and rf|length == 1 }}>{{ r }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <p class="filter-label">Más filtros</p>
+        <div class="filter-row">
+            <label for="otf">Tipo de obra</label>
+            <select name="otf" id="otf" style="min-width:160px">
+                <option value="">Todos</option>
+                {% for ot in obra_tipos %}
+                <option value="{{ ot }}" {{ 'selected' if ot in otf and otf|length == 1 }}>{{ obra_tipo_labels.get(ot, ot) }}</option>
+                {% endfor %}
+            </select>
+            <label for="mf">Modalidad</label>
+            <select name="mf" id="mf" style="min-width:160px">
+                <option value="">Todas</option>
+                {% for m in modalidades %}
+                <option value="{{ m }}" {{ 'selected' if m in mf and mf|length == 1 }}>{{ m }}</option>
+                {% endfor %}
+            </select>
+            <label for="tp">Tipo persona</label>
+            <select name="tp" id="tp">
+                <option value="">Todas</option>
+                <option value="natural" {{ 'selected' if tp == 'natural' }}>Natural</option>
+                <option value="juridica" {{ 'selected' if tp == 'juridica' }}>Jurídica</option>
+            </select>
+            <label for="mmn">Monto mín.</label>
+            <input type="number" name="mmn" id="mmn" value="{{ mmn }}" min="0" step="10000" placeholder="0" style="width:100px;border:1px solid var(--neutral-40);padding:0.4rem 0.5rem;font-size:14px;font-family:var(--mono-font);background:var(--neutral-0);outline:none;color:var(--neutral-100);border-radius:4px;">
+            <label for="mm">Máx.</label>
+            <input type="number" name="mm" id="mm" value="{{ mm }}" min="0" step="10000" placeholder="999,999,999" style="width:120px;border:1px solid var(--neutral-40);padding:0.4rem 0.5rem;font-size:14px;font-family:var(--mono-font);background:var(--neutral-0);outline:none;color:var(--neutral-100);border-radius:4px;">
+            <button type="button" class="btn btn-primary" onclick="applyFilters()">Aplicar</button>
+            <button type="button" class="btn" onclick="resetFilters()">Reset</button>
+        </div>
+
+    </form>
+
+    <p class="results-count" id="result-count">
+        <strong id="proj-count">{{ total_db }}</strong> proyectos en el mapa
+    </p>
+
+    <div id="map"></div>
+
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+<div class="wrap">
+    <div class="footer-grid">
+        <div>
+            <h4>Mapa de proyectos audiovisuales</h4>
+            <p>Estímulos Económicos del Ministerio</p>
+            <p>de Cultura del Perú</p>
+            <p class="dim">Solo lectura</p>
+        </div>
+        <div>
+            <h5>Explore the website</h5>
+            <p><a href="/">Proyectos</a> · <a href="/dashboard">Dashboard</a> · <a href="/mapa">Mapa</a></p>
+        </div>
+        <div>
+            <h5>Database</h5>
+            <p>{{ total_db }} proyectos</p>
+            <p>{{ monto_db }} otorgados</p>
+            <p class="dim">SQLite · 14 tablas</p>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        Powered by Flask · Datos DAFO · Leaflet.js
+    </div>
+</div>
+</div>
+
+<script>
+function toggleTheme() {
+    var cur = document.documentElement.getAttribute('data-theme');
+    var next = cur === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('dafo-theme', next);
+    updateLegend();
+    if (geojson) {
+        var dark = next === 'dark';
+        geojson.resetStyle();
+        geojson.eachLayer(function(layer) {
+            var name = normalize(layer.feature.properties.NOMBDEP);
+            var cnt = window.dataMap ? (window.dataMap[name] || 0) : 0;
+            layer.setStyle(styleFeature(layer.feature, window.dataMap, dark));
+        });
+    }
+}
+
+function normalize(s) {
+    return (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase().trim();
+}
+
+function getColor(cnt) {
+    return cnt > 200 ? '#1a1a1a' :
+           cnt > 100 ? '#444444' :
+           cnt > 50  ? '#777777' :
+           cnt > 20  ? '#aaaaaa' :
+           cnt > 5   ? '#cccccc' :
+                        '#eeeeee';
+}
+
+function getColorDark(cnt) {
+    return cnt > 200 ? '#ffffff' :
+            cnt > 100 ? '#C7CCD0' :
+            cnt > 50  ? '#92989F' :
+            cnt > 20  ? '#5D6875' :
+            cnt > 5   ? '#384450' :
+                         '#1D2A38';
+}
+
+function styleFeature(feature, dataMap, dark) {
+    var name = normalize(feature.properties.NOMBDEP);
+    var cnt = dataMap[name] || 0;
+    var colorFn = dark ? getColorDark : getColor;
+    return {
+        fillColor: colorFn(cnt),
+        weight: 1,
+        opacity: 1,
+        color: dark ? '#5D6875' : '#C7CCD0',
+        fillOpacity: 0.85,
+    };
+}
+
+function highlightFeature(e) {
+    var layer = e.target;
+    layer.setStyle({ weight: 2, color: '#E80247', fillOpacity: 1 });
+    layer.bringToFront();
+    info.update(layer.feature);
+}
+
+function resetHighlight(e) {
+    geojson.resetStyle(e.target);
+    info.update(null);
+}
+
+function zoomToFeature(e) {
+    map.fitBounds(e.target.getBounds());
+}
+
+var map = L.map('map', {
+    center: [-9.19, -75.01],
+    zoom: 5.5,
+    zoomControl: true,
+    attributionControl: false,
+});
+
+L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+    maxZoom: 18,
+}).addTo(map);
+
+var info = L.control({ position: 'topright' });
+info.onAdd = function() {
+    this._div = L.DomUtil.create('div', 'info');
+    this._div.innerHTML = '<h4>Perú</h4><p>Haz clic en un departamento</p>';
+    return this._div;
+};
+info.update = function(feature) {
+    if (!feature) {
+        this._div.innerHTML = '<h4>Perú</h4><p>Haz clic en un departamento</p>';
+        return;
+    }
+    var name = feature.properties.NOMBDEP || '';
+    var key = normalize(name);
+    var cnt = window.dataMap ? (window.dataMap[key] || 0) : 0;
+    this._div.innerHTML = '<h4>' + name + '</h4><p><strong>' + cnt + '</strong> proyectos</p>';
+};
+info.addTo(map);
+
+var legendCtrl = L.control({ position: 'bottomright' });
+
+function buildLegend(dark) {
+    var div = L.DomUtil.create('div', 'legend');
+    var grades = [1, 5, 20, 50, 100, 200];
+    var colorFn = dark ? getColorDark : getColor;
+    for (var i = 0; i < grades.length; i++) {
+        div.innerHTML +=
+            '<i style="background:' + colorFn(grades[i] + 1) + '"></i> ' +
+            grades[i] + (grades[i + 1] ? '–' + grades[i + 1] + '<br>' : '+');
+    }
+    return div;
+}
+
+function updateLegend() {
+    if (legendCtrl._container) {
+        legendCtrl._container.innerHTML = '';
+        var dark = document.documentElement.getAttribute('data-theme') === 'dark';
+        legendCtrl._container.appendChild(buildLegend(dark));
+    }
+}
+
+legendCtrl.onAdd = function() {
+    var dark = document.documentElement.getAttribute('data-theme') === 'dark';
+    return buildLegend(dark);
+};
+legendCtrl.addTo(map);
+
+var geojson;
+
+function getFilterParams() {
+    var params = new URLSearchParams();
+    var yf = document.getElementById('yf').value;
+    var yt = document.getElementById('yt').value;
+    var la = document.getElementById('la').value;
+    var rf = document.getElementById('rf').value;
+    var otf = document.getElementById('otf').value;
+    var mf = document.getElementById('mf').value;
+    var tp = document.getElementById('tp').value;
+    var mmn = document.getElementById('mmn').value;
+    var mm = document.getElementById('mm').value;
+    if (yf) params.set('yf', yf);
+    if (yt) params.set('yt', yt);
+    if (la) params.set('la', la);
+    if (rf) params.set('rf', rf);
+    if (otf) params.set('otf', otf);
+    if (mf) params.set('mf', mf);
+    if (tp) params.set('tp', tp);
+    if (mmn) params.set('mmn', mmn);
+    if (mm && mm != '999999999') params.set('mm', mm);
+    return params.toString();
+}
+
+function applyFilters() {
+    loadMap();
+}
+
+function resetFilters() {
+    document.getElementById('yf').value = '{{ anios[0] }}';
+    document.getElementById('yt').value = '{{ anios[-1] }}';
+    document.getElementById('la').value = '';
+    document.getElementById('rf').value = '';
+    document.getElementById('otf').value = '';
+    document.getElementById('mf').value = '';
+    document.getElementById('tp').value = '';
+    document.getElementById('mmn').value = '0';
+    document.getElementById('mm').value = '999999999';
+    loadMap();
+}
+
+function loadMap() {
+    var params = getFilterParams();
+    var url = '/api/dashboard' + (params ? '?' + params : '');
+
+    fetch(url)
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+        window.dataMap = {};
+        (d.dpto || []).forEach(function(item) {
+            var key = normalize(item.dpto);
+            window.dataMap[key] = (window.dataMap[key] || 0) + item.cnt;
+        });
+
+        var total = d.kpi ? d.kpi.total_proy : 0;
+        document.getElementById('proj-count').textContent = total;
+
+        return fetch('https://raw.githubusercontent.com/juaneladio/peru-geojson/master/peru_departamental_simple.geojson');
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(geoData) {
+        if (geojson) { map.removeLayer(geojson); }
+        var dark = document.documentElement.getAttribute('data-theme') === 'dark';
+        geojson = L.geoJson(geoData, {
+            style: function(feature) {
+                return styleFeature(feature, window.dataMap, dark);
+            },
+            onEachFeature: function(feature, layer) {
+                layer.on({
+                    mouseover: highlightFeature,
+                    mouseout: resetHighlight,
+                    click: zoomToFeature,
+                });
+            }
+        }).addTo(map);
+    });
+}
+
+document.addEventListener('DOMContentLoaded', loadMap);
+
+// Auto-submit on Enter for monto fields
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('mmn').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') { e.preventDefault(); loadMap(); }
+    });
+    document.getElementById('mm').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') { e.preventDefault(); loadMap(); }
+    });
+});
+</script>
+</body>
+</html>

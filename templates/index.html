@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mapa de proyectos audiovisuales</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+<script>
+(function() {
+  var t = localStorage.getItem('dafo-theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+<style>
+:root {
+  --neutral-100: #0D1B2A; --neutral-80: #384450; --neutral-60: #777F87;
+  --neutral-40: #E1E3E5; --neutral-30: #F0F1F2; --neutral-20: #FAFBFB;
+  --neutral-0: #FFF; --primary: #E80247;
+  --footer-bg: #0D1B2A; --footer-border: #2E3A47;
+  --body-font: 'Work Sans', sans-serif; --mono-font: 'IBM Plex Mono', monospace;
+  --sidebar-w: 320px;
+}
+[data-theme="dark"] {
+  --neutral-100: #FFF; --neutral-80: #BBBFC3; --neutral-60: #92989F;
+  --neutral-40: #2E3A47; --neutral-30: #1D2A38; --neutral-20: #152231;
+  --neutral-0: #0D1B2A; --primary: #FF4775;
+  --footer-bg: #0E1D2E; --footer-border: #1D2A38;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: var(--body-font); background: var(--neutral-0); color: var(--neutral-100); -webkit-font-smoothing: antialiased; font-size: 100%; font-weight: 400; line-height: 1.5; }
+a { color: inherit; text-decoration: none; }
+.wrap { max-width: 90vw; margin: 0 auto; padding: 0 0.5rem; }
+.hidden { display: none !important; }
+input, select, textarea { border-radius: 4px; }
+button, .btn, .btn-primary { border-radius: 4px; }
+.search-row input[type="text"] { border-radius: 4px 0 0 4px; }
+.search-row input[type="submit"] { border-radius: 0 4px 4px 0; }
+
+.c-header { position: sticky; top: 0; z-index: 100; border-bottom: 1px solid var(--neutral-40); background: var(--neutral-0); }
+.c-header__content { max-width: 90vw; margin: 0 auto; padding: 0 0.5rem; display: flex; align-items: center; justify-content: space-between; height: 50px; }
+.c-header__left { display: flex; align-items: center; gap: 2.5rem; }
+.c-main-logo { display: flex; align-items: center; }
+.c-main-logo svg { height: 28px; width: auto; }
+.c-header__right { display: flex; align-items: center; gap: 1rem; font-size: 14px; color: var(--neutral-60); }
+.c-header__right a { color: var(--neutral-60); transition: color 0.15s; }
+.c-header__right a:hover { color: var(--neutral-100); }
+.c-header__nav { display: flex; gap: 1.5rem; font-size: 14px; }
+.c-header__nav a { color: var(--neutral-60); transition: color 0.15s; }
+.c-header__nav a:hover, .c-header__nav a.active { color: var(--neutral-100); font-weight: 600; }
+.c-header__lang { display: flex; align-items: center; gap: 0.4rem; }
+.c-header__lang .active-lang { color: var(--primary); font-weight: 600; }
+.c-header__lang .sep { color: var(--neutral-40); }
+
+.page-title { font-family: var(--body-font); font-size: 32px; font-weight: 600; color: var(--neutral-100); margin: 0 0 0.75rem 0; letter-spacing: -0.01em; line-height: 1.1; text-transform: uppercase; }
+
+/* TWO-COLUMN LAYOUT */
+.layout { display: flex; gap: 2.5rem; align-items: flex-start; }
+.sidebar { width: var(--sidebar-w); flex-shrink: 0; position: sticky; top: calc(50px + 1rem); max-height: calc(100vh - 50px - 2rem); overflow-y: auto; }
+.content { flex: 1; min-width: 0; }
+
+/* FILTERS */
+.search-label { font-size: 14px; color: var(--neutral-60); margin: 0.5rem 0 0.25rem 0; }
+.search-row { display: flex; gap: 0; }
+.search-row input[type="text"] { flex: 1; border: 1px solid var(--neutral-40); border-right: none; padding: 0.5rem 0.7rem; font-size: 14px; font-family: var(--mono-font); background: var(--neutral-0); outline: none; color: var(--neutral-100); }
+.search-row input[type="text"]::placeholder { color: var(--neutral-60); }
+.search-row input[type="text"]:focus { border-color: var(--neutral-80); }
+.search-row input[type="submit"] { border: 1px solid var(--neutral-40); background: var(--neutral-0); padding: 0.45rem 1rem; font-size: 14px; font-family: var(--mono-font); cursor: pointer; transition: background 0.15s; color: var(--neutral-100); }
+.search-row input[type="submit"]:hover { background: var(--neutral-20); }
+
+.filter-label { font-size: 14px; color: var(--neutral-60); margin: 0.5rem 0 0.2rem 0; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
+.filter-row-sb { display: flex; flex-direction: column; gap: 0.4rem; }
+.filter-row-sb label { font-size: 14px; color: var(--neutral-60); font-family: var(--mono-font); }
+.filter-row-sb select, .filter-row-sb input { width: 100%; border: 1px solid var(--neutral-40); padding: 0.35rem 0.5rem; font-size: 14px; font-family: var(--mono-font); background: var(--neutral-0); outline: none; color: var(--neutral-100); }
+.filter-row-sb select:focus, .filter-row-sb input:focus { border-color: var(--neutral-80); }
+
+.range-row { display: flex; gap: 0.4rem; align-items: center; }
+.range-row label { font-size: 14px; color: var(--neutral-60); white-space: nowrap; }
+.range-row input { flex: 1; min-width: 0; }
+
+.sb-actions { display: flex; gap: 0.4rem; margin-top: 0.4rem; }
+.btn { border: 1px solid var(--neutral-40); padding: 0.4rem 1.2rem; font-size: 14px; font-family: var(--mono-font); background: var(--neutral-0); cursor: pointer; transition: all 0.15s; color: var(--neutral-100); flex: 1; text-align: center; }
+.btn:hover { border-color: var(--neutral-80); background: var(--neutral-20); }
+.btn-primary { background: var(--neutral-100); color: var(--neutral-0); border-color: var(--neutral-100); }
+.btn-primary:hover { background: var(--neutral-80); border-color: var(--neutral-80); }
+
+.results-count { font-size: 16px; color: var(--neutral-60); margin: 0.3rem 0 0.5rem 0; }
+.results-count strong { color: var(--neutral-100); font-weight: 600; }
+
+/* LOOP MOVIE GRID — same as Cinema Ritrovato */
+.c-loop-movie-wrapper {
+    display: block;
+}
+.c-loop-movie__header {
+    display: grid;
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr) minmax(0, 2.5fr) minmax(0, 1.5fr);
+    gap: 0 1rem;
+}
+.c-loop-movie__header span {
+    font-size: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-weight: 400;
+    color: var(--neutral-60);
+    padding-bottom: 0.2rem;
+    border-bottom: 2px solid var(--neutral-40);
+}
+.c-loop-movie__header .col-vermas {
+    text-align: right;
+}
+.c-loop-movie-row {
+    display: grid;
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr) minmax(0, 2.5fr) minmax(0, 1.5fr);
+    gap: 0 1rem;
+    border-bottom: 1px solid var(--neutral-40);
+}
+.c-loop-movie-row.below-open {
+    border-bottom: none;
+}
+.c-loop-movie-row:hover {
+    background: var(--neutral-20);
+    transition: background 0.15s ease;
+}
+.c-loop-movie-row:hover .c-loop-movie__title,
+.c-loop-movie-row:hover .c-loop-movie__field {
+    font-weight: 700;
+}
+.c-loop-movie__title {
+    font-size: 21px;
+    font-weight: 400;
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+    margin: 0;
+    padding: 0.4rem 0;
+    text-transform: uppercase;
+}
+.c-loop-movie__title a { color: var(--neutral-100); }
+.c-loop-movie__title a:hover { text-decoration: underline; }
+.c-loop-movie__field {
+    margin: 0;
+    font-size: 16px;
+    color: var(--neutral-80);
+    line-height: 1.4;
+    padding: 0.4rem 0;
+}
+.c-loop-movie__field--vermas {
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-end;
+    gap: 0.3rem;
+}
+.c-loop-movie-details {
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    padding: 0 0;
+    font-size: 16px;
+    color: var(--neutral-80);
+    line-height: 1.5;
+    transition: max-height 0.35s ease, opacity 0.35s ease, padding 0.35s ease;
+}
+.c-loop-movie-details.open {
+    max-height: 300px;
+    opacity: 1;
+    padding: 0.4rem 0 0.6rem 0;
+}
+.c-loop-movie-details p { margin: 0.1rem 0; }
+.c-loop-movie-details strong { color: var(--neutral-100); font-weight: 600; }
+.c-loop-movie-details a { color: var(--primary); text-decoration: underline; }
+.c-loop-movie-details a:hover { opacity: 0.8; }
+.details-toggle { font-size: 14px; color: var(--neutral-60); cursor: pointer; background: none; border: 1px solid var(--neutral-40); border-radius: 3px; padding: 0.1rem 0.3rem; font-family: var(--mono-font); transition: all 0.15s; white-space: nowrap; flex-shrink: 0; }
+.details-toggle:hover { color: var(--neutral-100); border-color: var(--neutral-80); }
+.c-loop-movie__label {
+    display: block;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--neutral-60);
+    font-weight: 600;
+    margin-bottom: 0.1rem;
+}
+.details-toggle { font-size: 0.72rem; color: var(--neutral-60); cursor: pointer; background: none; border: none; padding: 0; margin-top: 0.15rem; display: inline-block; font-family: var(--body-font); letter-spacing: 0.02em; }
+.details-toggle:hover { color: var(--neutral-100); }
+.details-box { padding: 0.3rem 0 0.1rem 0; font-size: 0.78rem; display: none; }
+.details-box.open { display: block; }
+.details-box p { margin: 0.1rem 0; color: var(--neutral-80); }
+.details-box strong { color: var(--neutral-100); }
+
+.loading { text-align: center; padding: 1rem; color: var(--neutral-60); font-size: 16px; }
+.empty-state { padding: 1.5rem 0; text-align: center; }
+.empty-state h2 { font-size: 40px; font-weight: 400; color: var(--neutral-100); margin: 0 0 0.2rem 0; letter-spacing: -0.01em; text-transform: uppercase; }
+.empty-state p { font-size: 16px; color: var(--neutral-60); margin: 0.1rem 0; }
+.empty-state .suggestions { display: flex; flex-wrap: wrap; gap: 0.4rem; justify-content: center; margin: 0.5rem 0 0.2rem 0; }
+.chip { display: inline-block; padding: 0.3rem 0.7rem; border: 1px solid var(--neutral-40); font-size: 14px; font-family: var(--mono-font); color: var(--neutral-80); cursor: pointer; transition: all 0.15s; background: var(--neutral-0); }
+.chip:hover { border-color: var(--neutral-100); color: var(--neutral-100); background: var(--neutral-20); }
+
+.footer { background: var(--footer-bg); color: var(--neutral-60); margin-top: 1.5rem; padding: 1.5rem 0 1rem 0; font-size: 14px; }
+.footer-grid { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 1.5rem; }
+.footer h4 { color: var(--neutral-0); font-size: 21px; font-weight: 400; margin: 0 0 0.3rem 0; letter-spacing: -0.01em; text-transform: uppercase; }
+.footer h5 { color: var(--neutral-0); font-weight: 600; margin: 0 0 0.3rem 0; font-size: 16px; text-transform: none; }
+.footer p { margin: 0.1rem 0; }
+.footer .dim { color: var(--neutral-80); }
+.footer a { color: var(--neutral-60); transition: color 0.15s; }
+.footer a:hover { color: var(--neutral-0); }
+.footer-bottom { text-align: center; margin-top: 1rem; border-top: 1px solid var(--footer-border); padding-top: 0.8rem; font-size: 14px; color: var(--neutral-80); }
+.theme-toggle { display: inline-flex; align-items: center; gap: 0.4rem; cursor: pointer; background: none; border: none; padding: 0.3rem; color: var(--neutral-60); font-size: 14px; font-family: var(--mono-font); transition: color 0.15s; }
+.theme-toggle:hover { color: var(--neutral-100); }
+.theme-toggle i { font-size: 16px; }
+[data-theme="dark"] .theme-toggle .icon-sun { display: inline; }
+[data-theme="dark"] .theme-toggle .icon-moon { display: none; }
+.theme-toggle .icon-sun { display: none; }
+.theme-toggle .icon-moon { display: inline; }
+
+/* PAGINATION */
+.pagination { margin: 1rem 0; }
+.pagination-controls { display: flex; align-items: center; gap: 0.3rem; flex-wrap: wrap; justify-content: center; }
+.page-btn { padding: 0.35rem 0.7rem; font-size: 16px; font-family: var(--mono-font); border: 1px solid var(--neutral-40); background: var(--neutral-0); cursor: pointer; color: var(--neutral-100); border-radius: 4px; transition: all 0.15s; }
+.page-btn:hover { border-color: var(--neutral-80); background: var(--neutral-20); }
+.page-num { min-width: 2rem; text-align: center; }
+.page-current { display: inline-flex; align-items: center; justify-content: center; min-width: 2rem; padding: 0.35rem 0.5rem; font-size: 16px; font-family: var(--mono-font); font-weight: 700; color: var(--neutral-0); background: var(--neutral-100); border-radius: 4px; }
+.page-ellipsis { padding: 0 0.2rem; color: var(--neutral-60); font-size: 16px; }
+
+/* SCROLLBAR */
+.sidebar::-webkit-scrollbar { width: 4px; }
+.sidebar::-webkit-scrollbar-track { background: transparent; }
+.sidebar::-webkit-scrollbar-thumb { background: var(--neutral-40); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<header class="c-header">
+<div class="c-header__content">
+    <div class="c-header__left">
+        <div class="c-main-logo">
+            <a href="/" aria-label="Go to the home page">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 40" fill="none">
+                    <text x="0" y="30" font-family="'Work Sans',sans-serif" font-weight="700" font-size="20" fill="currentColor">Mapa de proyectos audiovisuales</text>
+                </svg>
+            </a>
+        </div>
+        <nav class="c-header__nav">
+            <a href="/" class="active">Proyectos</a>
+            <a href="/dashboard">Dashboard</a>
+            <a href="/mapa">Mapa</a>
+        </nav>
+    </div>
+    <div class="c-header__right">
+        <button type="button" class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle dark mode" title="Cambiar modo claro/oscuro">
+            <i class="fa-regular fa-sun icon-sun"></i>
+            <i class="fa-regular fa-moon icon-moon"></i>
+        </button>
+        <div class="c-header__lang">
+            <span class="active-lang">es</span>
+            <span class="sep">|</span>
+            <a href="#">Cinefilia Ritrovata</a>
+        </div>
+    </div>
+</div>
+</header>
+
+<div class="wrap">
+    <div style="height:50vh;background:var(--neutral-30);margin:0 -9999rem 2rem;padding:0 9999rem;"></div>
+
+    <div class="layout">
+
+        <!-- SIDEBAR: FILTERS -->
+        <aside class="sidebar" id="sidebar">
+            <h1 class="page-title">Proyectos</h1>
+
+            <p class="search-label">Buscar</p>
+            <div class="search-row">
+                <input type="text" id="search-q" placeholder="Search" value="{{ q or '' }}" autocomplete="off">
+                <input type="submit" value="Buscar" onclick="applyFilters()">
+            </div>
+
+            <p class="filter-label">Edición</p>
+            <div class="filter-row-sb">
+                <div class="range-row">
+                    <label for="yf">Desde</label>
+                    <select id="yf">
+                        {% for a in anios %}
+                        <option value="{{ a }}" {{ 'selected' if yf == a }}>{{ a }}</option>
+                        {% endfor %}
+                    </select>
+                    <label for="yt">Hasta</label>
+                    <select id="yt">
+                        {% for a in anios %}
+                        <option value="{{ a }}" {{ 'selected' if yt == a }}>{{ a }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <p class="filter-label">Categoría</p>
+            <div class="filter-row-sb">
+                <select id="otf">
+                    <option value="">Todas</option>
+                    {% for t in obra_tipos %}
+                    <option value="{{ t }}" {{ 'selected' if t in otf and otf|length == 1 }}>{{ obra_tipo_labels.get(t, t) }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <p class="filter-label">Tipo persona</p>
+            <div class="filter-row-sb">
+                <select id="tp">
+                    <option value="">Todas</option>
+                    <option value="natural" {{ 'selected' if tp == 'natural' }}>Natural</option>
+                    <option value="juridica" {{ 'selected' if tp == 'juridica' }}>Jurídica</option>
+                </select>
+            </div>
+
+            <p class="filter-label">Estímulo</p>
+            <div class="filter-row-sb">
+                <select id="la">
+                    <option value="">Todos</option>
+                    {% for l in lineas %}
+                    <option value="{{ l }}" {{ 'selected' if l in la and la|length == 1 }}>{{ lineas_dict.get(l, l) }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <p class="filter-label">Región</p>
+            <div class="filter-row-sb">
+                <select id="rf">
+                    <option value="">Todas</option>
+                    {% for r in regiones %}
+                    <option value="{{ r }}" {{ 'selected' if r in rf and rf|length == 1 }}>{{ r }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <p class="filter-label">Monto (S/)</p>
+            <div class="filter-row-sb">
+                <div class="range-row">
+                    <label for="mmn">Mín</label>
+                    <input type="number" id="mmn" value="{{ mmn }}" min="0" step="10000" placeholder="0">
+                    <label for="mm">Máx</label>
+                    <input type="number" id="mm" value="{{ mm }}" min="0" step="10000" placeholder="999,999,999">
+                </div>
+            </div>
+
+            <div class="sb-actions">
+                <button type="button" class="btn btn-primary" onclick="applyFilters()">Aplicar</button>
+                <button type="button" class="btn" onclick="resetFilters()">Reset</button>
+            </div>
+
+        </aside>
+
+        <!-- CONTENT: RESULTS -->
+        <main class="content">
+
+            <p class="results-count" id="result-count">
+                <strong id="proj-count">0</strong> resultados
+            </p>
+
+            <div class="c-loop-movie-wrapper">
+                <div class="c-loop-movie__header">
+                    <span>Título</span>
+                    <span>Estímulo</span>
+                    <span>Persona</span>
+                    <span class="col-vermas">Ver más</span>
+                </div>
+                <div id="results-list"></div>
+            </div>
+
+            <div class="loading hidden" id="loading-indicator">Cargando…</div>
+            <div class="pagination" id="pagination"></div>
+            <div class="loading hidden" id="end-indicator">— No hay más resultados —</div>
+
+            <div class="empty-state hidden" id="empty-state">
+                <h2>Sin resultados</h2>
+                <p>Prueba con otros filtros o términos de búsqueda.</p>
+                <div class="suggestions">
+                    {% for s in suggestions %}
+                    <span class="chip" onclick="searchSuggestion('{{ s }}')">{{ s }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+
+        </main>
+
+    </div>
+</div>
+
+<div class="footer">
+<div class="wrap">
+    <div class="footer-grid">
+        <div>
+            <h4>Mapa de proyectos audiovisuales</h4>
+            <p>Estímulos Económicos del Ministerio</p>
+            <p>de Cultura del Perú</p>
+            <p class="dim">Solo lectura</p>
+        </div>
+        <div>
+            <h5>Explore the website</h5>
+            <p><a href="/">Proyectos</a></p>
+            <p><a href="/dashboard">Dashboard</a> · <a href="/mapa">Mapa</a></p>
+        </div>
+        <div>
+            <h5>Database</h5>
+            <p>{{ total_db }} proyectos</p>
+            <p>{{ monto_db }} otorgados</p>
+            <p class="dim">SQLite · 14 tablas</p>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        Powered by Flask · Datos DAFO
+    </div>
+</div>
+</div>
+
+<script>
+var currentPage = 1;
+var totalPages = 1;
+var loading = false;
+
+function toggleTheme() {
+    var cur = document.documentElement.getAttribute('data-theme');
+    var next = cur === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('dafo-theme', next);
+}
+
+function getFilterParams() {
+    var params = new URLSearchParams();
+    var q = document.getElementById('search-q').value;
+    var yf = document.getElementById('yf').value;
+    var yt = document.getElementById('yt').value;
+    var la = document.getElementById('la').value;
+    var rf = document.getElementById('rf').value;
+    var otf = document.getElementById('otf').value;
+    var tp = document.getElementById('tp').value;
+    var mmn = document.getElementById('mmn').value;
+    var mm = document.getElementById('mm').value;
+    if (q) params.set('q', q);
+    if (yf) params.set('yf', yf);
+    if (yt) params.set('yt', yt);
+    if (la) params.set('la', la);
+    if (rf) params.set('rf', rf);
+    if (tp) params.set('tp', tp);
+    if (otf) params.set('otf', otf);
+    if (mmn) params.set('mmn', mmn);
+    if (mm && mm != '999999999') params.set('mm', mm);
+    return params;
+}
+
+function buildResultHTML(r) {
+    var rdLink = r.rd && r.rd !== '—'
+        ? (r.pdf_url
+            ? '<a href="' + escHtml(r.pdf_url) + '" target="_blank" rel="noopener">' + escHtml(r.rd) + '</a>'
+            : escHtml(r.rd))
+        : '—';
+
+    var integrantesHtml = '';
+    if (r.integrantes && r.integrantes.length) {
+        integrantesHtml = r.integrantes.map(function(i) { return '<p>– ' + i + '</p>'; }).join('');
+    } else {
+        integrantesHtml = '<p><em>Sin integrantes</em></p>';
+    }
+
+    return '<div class="c-loop-movie-row">'
+        + '<h3 class="c-loop-movie__title"><a href="#">' + escHtml(r.titulo) + '</a></h3>'
+        + '<p class="c-loop-movie__field">' + escHtml(r.linea_nombre) + '</p>'
+        + (r.linea === 'PDT' ? '' : '<p class="c-loop-movie__field">' + escHtml(r.persona) + ' <span style="color:var(--neutral-60);font-size:14px">(' + escHtml(r.tipo_label) + ')</span></p>')
+        + '<p class="c-loop-movie__field c-loop-movie__field--vermas"><button type="button" class="details-toggle" onclick="toggleDetails(this)" title="Ver detalles"><span class="toggle-label">Ver más</span> <span class="toggle-icon">[+]</span></button></p>'
+        + '</div>'
+        + '<div class="c-loop-movie-details">'
+        + '<p><strong>Región:</strong> ' + escHtml(r.region) + '</p>'
+        + '<p><strong>Modalidad:</strong> ' + escHtml(r.modalidad) + '</p>'
+        + '<p><strong>Tipo de obra:</strong> ' + escHtml(r.obra_tipo_label) + '</p>'
+        + '<p><strong>Año:</strong> ' + r.anio + ' · <strong>Monto:</strong> ' + r.monto + '</p>'
+        + '<p><strong>Integrantes:</strong></p>' + integrantesHtml
+        + '<p><strong>RD:</strong> ' + rdLink + '</p>'
+        + '</div>';
+}
+
+function escHtml(s) {
+    if (!s) return '';
+    var d = document.createElement('div');
+    d.appendChild(document.createTextNode(s));
+    return d.innerHTML;
+}
+
+function toggleDetails(btn) {
+    var row = btn.closest('.c-loop-movie-row');
+    var details = row.nextElementSibling;
+    if (details && details.classList.contains('c-loop-movie-details')) {
+        details.classList.toggle('open');
+        row.classList.toggle('below-open');
+        var icon = btn.querySelector('.toggle-icon');
+        var label = btn.querySelector('.toggle-label');
+        if (details.classList.contains('open')) {
+            icon.textContent = '[-]';
+            label.textContent = 'Ver menos';
+        } else {
+            icon.textContent = '[+]';
+            label.textContent = 'Ver más';
+        }
+    }
+}
+
+function searchSuggestion(q) {
+    document.getElementById('search-q').value = q;
+    applyFilters();
+}
+
+function applyFilters() {
+    currentPage = 1;
+    document.getElementById('results-list').innerHTML = '';
+    document.getElementById('empty-state').classList.add('hidden');
+    document.getElementById('end-indicator').classList.add('hidden');
+    document.getElementById('pagination').innerHTML = '';
+    refreshDropdowns();
+    fetchSearch(1);
+}
+
+function resetFilters() {
+    document.getElementById('search-q').value = '';
+    document.getElementById('yf').value = '{{ anios[0] }}';
+    document.getElementById('yt').value = '{{ anios[-1] }}';
+    document.getElementById('la').value = '';
+    document.getElementById('rf').value = '';
+    document.getElementById('tp').value = '';
+    document.getElementById('otf').value = '';
+    document.getElementById('mmn').value = '0';
+    document.getElementById('mm').value = '999999999';
+    applyFilters();
+}
+
+function populateSelect(id, options, valueKey, labelKey, allLabel, selectedVal) {
+    var sel = document.getElementById(id);
+    var current = sel.value;
+    sel.innerHTML = '<option value="">' + allLabel + '</option>';
+    options.forEach(function(o) {
+        var val = o[valueKey];
+        var label = o[labelKey];
+        if (o.cnt !== undefined) label += ' (' + o.cnt + ')';
+        var opt = document.createElement('option');
+        opt.value = val;
+        opt.textContent = label;
+        sel.appendChild(opt);
+    });
+    // Preserve selection if still valid
+    if (selectedVal) {
+        sel.value = selectedVal;
+    } else if (current) {
+        sel.value = current;
+    }
+}
+
+function refreshDropdowns() {
+    var params = getFilterParams();
+    var url = '/api/filters?' + params.toString();
+
+    fetch(url)
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+        populateSelect('yf', d.anios, 'anio', 'anio', 'Desde');
+        populateSelect('yt', d.anios, 'anio', 'anio', 'Hasta');
+        populateSelect('otf', d.categorias, 'codigo', 'nombre', 'Todas');
+        populateSelect('la', d.lineas, 'codigo', 'nombre', 'Todos');
+        populateSelect('rf', d.regiones, 'region', 'region', 'Todas');
+    });
+}
+
+function fetchSearch(page) {
+    if (loading) return;
+    loading = true;
+    document.getElementById('loading-indicator').classList.remove('hidden');
+
+    var params = getFilterParams();
+    params.set('p', page);
+    var url = '/api/search?' + params.toString();
+
+    fetch(url)
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+        loading = false;
+        document.getElementById('loading-indicator').classList.add('hidden');
+
+        currentPage = d.page;
+        totalPages = d.total_pages;
+        document.getElementById('proj-count').textContent = d.total;
+
+        var container = document.getElementById('results-list');
+        container.innerHTML = '';
+        d.results.forEach(function(r) {
+            container.insertAdjacentHTML('beforeend', buildResultHTML(r));
+        });
+
+        renderPagination();
+    })
+    .catch(function() {
+        loading = false;
+        document.getElementById('loading-indicator').classList.add('hidden');
+    });
+}
+
+function renderPagination() {
+    var el = document.getElementById('pagination');
+    if (totalPages <= 1) { el.innerHTML = ''; return; }
+
+    var html = '<div class="pagination-controls">';
+    if (currentPage > 1) {
+        html += '<button type="button" class="btn page-btn" onclick="goToPage(' + (currentPage - 1) + ')">‹ Anterior</button>';
+    }
+    for (var i = 1; i <= totalPages; i++) {
+        if (i === currentPage) {
+            html += '<span class="page-current">' + i + '</span>';
+        } else if (i === 1 || i === totalPages || Math.abs(i - currentPage) <= 2) {
+            html += '<button type="button" class="btn page-btn page-num" onclick="goToPage(' + i + ')">' + i + '</button>';
+        } else if (Math.abs(i - currentPage) === 3) {
+            html += '<span class="page-ellipsis">…</span>';
+        }
+    }
+    if (currentPage < totalPages) {
+        html += '<button type="button" class="btn page-btn" onclick="goToPage(' + (currentPage + 1) + ')">Siguiente ›</button>';
+    }
+    html += '</div>';
+    el.innerHTML = html;
+}
+
+function goToPage(page) {
+    if (page < 1 || page > totalPages || loading) return;
+    fetchSearch(page);
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    var filterIds = ['search-q', 'yf', 'yt', 'otf', 'la', 'rf', 'tp', 'mmn', 'mm'];
+    filterIds.forEach(function(id) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        el.addEventListener('change', function() { refreshDropdowns(); });
+        el.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                applyFilters();
+            }
+        });
+    });
+
+    refreshDropdowns();
+    applyFilters();
+});
+</script>
+</body>
+</html>

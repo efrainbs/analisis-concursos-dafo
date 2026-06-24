@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mapa de proyectos audiovisuales</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script>
+(function() {
+  var t = localStorage.getItem('dafo-theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+<style>
+:root {
+  --neutral-100: #0D1B2A; --neutral-80: #384450; --neutral-60: #777F87;
+  --neutral-40: #E1E3E5; --neutral-30: #F0F1F2; --neutral-20: #FAFBFB;
+  --neutral-0: #FFF; --primary: #E80247;
+  --footer-bg: #0D1B2A; --footer-border: #2E3A47;
+  --body-font: 'Work Sans', sans-serif; --mono-font: 'IBM Plex Mono', monospace;
+}
+[data-theme="dark"] {
+  --neutral-100: #FFF; --neutral-80: #BBBFC3; --neutral-60: #92989F;
+  --neutral-40: #2E3A47; --neutral-30: #1D2A38; --neutral-20: #152231;
+  --neutral-0: #0D1B2A; --primary: #FF4775;
+  --footer-bg: #0E1D2E; --footer-border: #1D2A38;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: var(--body-font); background: var(--neutral-0); color: var(--neutral-100); -webkit-font-smoothing: antialiased; font-size: 100%; font-weight: 400; line-height: 1.5; }
+a { color: inherit; text-decoration: none; }
+.wrap { max-width: 90vw; margin: 0 auto; padding: 0 0.5rem; }
+.hidden { display: none !important; }
+input, select, textarea, button, .btn { border-radius: 4px; }
+.dash-layout { display: flex; gap: 2rem; align-items: flex-start; }
+.dash-sidebar { width: 320px; min-width: 320px; position: sticky; top: 60px; max-height: calc(100vh - 70px); overflow-y: auto; padding: 0.5rem 0 1rem 0; }
+.dash-sidebar::-webkit-scrollbar { width: 4px; }
+.dash-sidebar::-webkit-scrollbar-thumb { background: var(--neutral-40); border-radius: 2px; }
+.dash-main { flex: 1; min-width: 0; }
+.c-header { position: sticky; top: 0; z-index: 100; border-bottom: 1px solid var(--neutral-40); background: var(--neutral-0); }
+.c-header__content { max-width: 90vw; margin: 0 auto; padding: 0 0.5rem; display: flex; align-items: center; justify-content: space-between; height: 50px; }
+.c-header__left { display: flex; align-items: center; gap: 2.5rem; }
+.c-main-logo { display: flex; align-items: center; }
+.c-main-logo svg { height: 28px; width: auto; }
+.c-header__right { display: flex; align-items: center; gap: 1rem; font-size: 14px; color: var(--neutral-60); }
+.c-header__right a { color: var(--neutral-60); transition: color 0.15s; }
+.c-header__right a:hover { color: var(--neutral-100); }
+.c-header__nav { display: flex; gap: 1.5rem; font-size: 14px; }
+.c-header__nav a { color: var(--neutral-60); transition: color 0.15s; }
+.c-header__nav a:hover, .c-header__nav a.active { color: var(--neutral-100); font-weight: 600; }
+.c-header__lang { display: flex; align-items: center; gap: 0.4rem; }
+.c-header__lang .active-lang { color: var(--primary); font-weight: 600; }
+.c-header__lang .sep { color: var(--neutral-40); }
+.page-title { font-family: var(--body-font); font-size: 32px; font-weight: 600; color: var(--neutral-100); margin: 0 0 0.75rem 0; letter-spacing: -0.01em; line-height: 1.1; text-transform: uppercase; }
+.sidebar-section { margin-bottom: 1rem; }
+.sidebar-section h3 { font-size: 13px; color: var(--neutral-60); margin: 0 0 0.5rem 0; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; font-family: var(--mono-font); }
+.filter-label { font-size: 14px; color: var(--neutral-60); margin: 0.5rem 0 0.25rem 0; }
+.filter-row { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+.filter-row label { font-size: 14px; color: var(--neutral-60); }
+.filter-row select { border: 1px solid var(--neutral-40); padding: 0.4rem 0.6rem; font-size: 14px; font-family: var(--mono-font); background: var(--neutral-0); outline: none; cursor: pointer; min-width: 90px; color: var(--neutral-100); }
+.filter-row select:focus { border-color: var(--neutral-80); }
+.adv-toggle { font-size: 14px; color: var(--neutral-60); cursor: pointer; margin: 0.6rem 0; display: inline-block; background: none; border: none; padding: 0; border-bottom: 1px dotted var(--neutral-40); font-family: var(--body-font); }
+.adv-toggle:hover { color: var(--neutral-100); border-bottom-color: var(--neutral-60); }
+.adv-box { border: 1px solid var(--neutral-40); padding: 1.5rem; margin: 0.5rem 0 1rem 0; background: var(--neutral-20); }
+.adv-box-title { font-size: 14px; color: var(--neutral-60); margin: 0 0 1rem 0; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; font-family: var(--mono-font); }
+.adv-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.2rem; }
+.adv-label { font-size: 14px; color: var(--neutral-60); margin: 0 0 0.3rem 0; font-family: var(--mono-font); }
+.adv-grid select, .adv-grid input { width: 100%; border: 1px solid var(--neutral-40); padding: 0.4rem 0.5rem; font-size: 14px; font-family: var(--mono-font); background: var(--neutral-0); outline: none; color: var(--neutral-100); }
+.adv-grid select:focus, .adv-grid input:focus { border-color: var(--neutral-80); }
+.checkbox-grid { display: flex; flex-wrap: wrap; gap: 0.25rem; max-height: 7rem; overflow-y: auto; }
+.checkbox-grid label { font-size: 14px; display: flex; align-items: center; gap: 0.25rem; white-space: nowrap; cursor: pointer; color: var(--neutral-80); font-family: var(--mono-font); }
+.checkbox-grid label:hover { color: var(--neutral-100); }
+.btn { border: 1px solid var(--neutral-40); padding: 0.45rem 1.5rem; font-size: 14px; font-family: var(--mono-font); background: var(--neutral-0); cursor: pointer; transition: all 0.15s; color: var(--neutral-100); }
+.btn:hover { border-color: var(--neutral-80); background: var(--neutral-20); }
+.btn-primary { background: var(--neutral-100); color: var(--neutral-0); border-color: var(--neutral-100); }
+.btn-primary:hover { background: var(--neutral-80); border-color: var(--neutral-80); }
+.kpi-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 0.75rem; margin-bottom: 1.5rem; }
+.kpi-card { background: var(--neutral-20); border: 1px solid var(--neutral-40); padding: 1.25rem; }
+.kpi-label { font-size: 14px; color: var(--neutral-60); text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 0.3rem 0; }
+.kpi-value { font-size: 1.8rem; font-weight: 700; color: var(--neutral-100); margin: 0; }
+.chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin: 1rem 0; }
+.chart-grid .full { grid-column: 1 / -1; }
+.chart-box { background: var(--neutral-0); border: 1px solid var(--neutral-40); padding: 0.75rem 1rem; }
+.chart-box h3 { font-size: 16px; font-weight: 600; color: var(--neutral-100); margin-bottom: 0.3rem; }
+.chart-box canvas { max-height: 504px; }
+.footer { background: var(--footer-bg); color: var(--neutral-60); margin-top: 1.5rem; padding: 1.5rem 0 1rem 0; font-size: 14px; }
+.footer-grid { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 1.5rem; }
+.footer h4 { color: var(--neutral-0); font-size: 21px; font-weight: 400; margin: 0 0 0.3rem 0; letter-spacing: -0.01em; text-transform: uppercase; }
+.footer h5 { color: var(--neutral-0); font-weight: 600; margin: 0 0 0.3rem 0; font-size: 16px; text-transform: none; }
+.footer p { margin: 0.1rem 0; }
+.footer .dim { color: var(--neutral-80); }
+.footer a { color: var(--neutral-60); transition: color 0.15s; }
+.footer a:hover { color: var(--neutral-0); }
+.footer-bottom { text-align: center; margin-top: 1rem; border-top: 1px solid var(--footer-border); padding-top: 0.8rem; font-size: 14px; color: var(--neutral-80); }
+.theme-toggle { display: inline-flex; align-items: center; gap: 0.4rem; cursor: pointer; background: none; border: none; padding: 0.3rem; color: var(--neutral-60); font-size: 14px; font-family: var(--mono-font); transition: color 0.15s; }
+.theme-toggle:hover { color: var(--neutral-100); }
+.theme-toggle i { font-size: 16px; }
+[data-theme="dark"] .theme-toggle .icon-sun { display: inline; }
+[data-theme="dark"] .theme-toggle .icon-moon { display: none; }
+.theme-toggle .icon-sun { display: none; }
+.theme-toggle .icon-moon { display: inline; }
+.loading { text-align: center; padding: 2rem; color: var(--neutral-60); }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="c-header">
+<div class="c-header__content">
+    <div class="c-header__left">
+        <div class="c-main-logo">
+            <a href="/" aria-label="Go to the home page">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 40" fill="none">
+                    <text x="0" y="30" font-family="'Work Sans',sans-serif" font-weight="700" font-size="20" fill="currentColor">Mapa de proyectos audiovisuales</text>
+                </svg>
+            </a>
+        </div>
+        <nav class="c-header__nav">
+            <a href="/">Proyectos</a>
+            <a href="/dashboard" class="active">Dashboard</a>
+            <a href="/mapa">Mapa</a>
+        </nav>
+    </div>
+    <div class="c-header__right">
+        <button type="button" class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle dark mode">
+            <i class="fa-regular fa-sun icon-sun"></i>
+            <i class="fa-regular fa-moon icon-moon"></i>
+        </button>
+        <div class="c-header__lang">
+            <span class="active-lang">es</span>
+            <span class="sep">|</span>
+            <a href="#">Cinefilia Ritrovata</a>
+        </div>
+    </div>
+</div>
+</header>
+
+<!-- MAIN -->
+<div class="wrap">
+<div class="dash-layout">
+
+    <aside class="dash-sidebar">
+
+        <h1 class="page-title">Dashboard</h1>
+
+        <!-- FILTERS -->
+        <div id="filter-area">
+        <p class="filter-label">Filter by edition</p>
+        <div class="filter-row">
+            <label>From</label>
+            <select id="f-yf" onchange="refreshDashboard()">
+                {% for a in anios %}
+                <option value="{{ a }}" {{ 'selected' if yf == a }}>{{ a }}</option>
+                {% endfor %}
+            </select>
+            <label>To</label>
+            <select id="f-yt" onchange="refreshDashboard()">
+                {% for a in anios %}
+                <option value="{{ a }}" {{ 'selected' if yt == a }}>{{ a }}</option>
+                {% endfor %}
+            </select>
+            <label>Línea</label>
+            <select id="f-la" onchange="refreshDashboard()">
+                <option value="">Todas</option>
+                {% for l in lineas %}
+                <option value="{{ l }}" {{ 'selected' if la|length == 1 and l in la }}>{{ l }}</option>
+                {% endfor %}
+            </select>
+            <label>Región</label>
+            <select id="f-rf" onchange="refreshDashboard()">
+                <option value="">Todas</option>
+                {% for r in regiones %}
+                <option value="{{ r }}" {{ 'selected' if rf|length == 1 and r in rf }}>{{ r }}</option>
+                {% endfor %}
+            </select>
+            <label>Modalidad</label>
+            <select id="f-mf" onchange="refreshDashboard()">
+                <option value="">Todas</option>
+                {% for m in modalidades %}
+                <option value="{{ m }}" {{ 'selected' if mf|length == 1 and m in mf }}>{{ m[:30] }}</option>
+                {% endfor %}
+            </select>
+            <button class="btn btn-primary" onclick="document.getElementById('f-yf').value='{{ anios[0] }}';document.getElementById('f-yt').value='{{ anios[-1] }}';document.getElementById('f-la').value='';document.getElementById('f-rf').value='';document.getElementById('f-mf').value='';document.getElementById('f-tp').value='';document.getElementById('f-mmn').value='0';document.getElementById('f-mm').value='999999999';refreshDashboard()">Reset</button>
+        </div>
+
+        <button type="button" class="adv-toggle" onclick="toggleAdv()">Advanced filters</button>
+
+        <div class="adv-box hidden" id="adv-box">
+            <p class="adv-box-title">Advanced filters</p>
+            <div class="adv-grid">
+                <div>
+                    <p class="adv-label">Tipo persona</p>
+                    <select id="f-tp" onchange="refreshDashboard()">
+                        <option value="">Todas</option>
+                        <option value="natural" {{ 'selected' if tp == 'natural' }}>Natural</option>
+                        <option value="juridica" {{ 'selected' if tp == 'juridica' }}>Jurídica</option>
+                    </select>
+                </div>
+                <div>
+                    <p class="adv-label">Monto mín. (S/)</p>
+                    <input type="number" id="f-mmn" value="{{ mmn }}" min="0" step="10000" onchange="refreshDashboard()">
+                </div>
+                <div>
+                    <p class="adv-label">Monto máx. (S/)</p>
+                    <input type="number" id="f-mm" value="{{ mm }}" min="0" step="10000" onchange="refreshDashboard()">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- DASHBOARD CONTROLS (in sidebar) -->
+    <div class="sidebar-section">
+        <h3>Controles</h3>
+        <div style="display:flex;flex-direction:column;gap:0.75rem;">
+            <div>
+                <p style="font-size:13px;color:var(--neutral-60);margin:0 0 0.3rem 0;font-weight:600;">Métrica</p>
+                <div style="display:flex;gap:0.25rem;">
+                    <button id="ctrl-metric-cnt" class="btn btn-primary" onclick="setMetric('cnt')" style="padding:0.4rem 1rem;font-size:14px;font-weight:600;flex:1;">Cantidad</button>
+                    <button id="ctrl-metric-amt" class="btn" onclick="setMetric('amt')" style="padding:0.4rem 1rem;font-size:14px;font-weight:600;flex:1;">Monto (S/)</button>
+                </div>
+            </div>
+            <div>
+                <p style="font-size:13px;color:var(--neutral-60);margin:0 0 0.3rem 0;font-weight:600;">Gráfico evolución</p>
+                <div style="display:flex;gap:0.25rem;">
+                    <button id="ctrl-chart-line" class="btn btn-primary" onclick="setChartType('line')" style="padding:0.4rem 1rem;font-size:14px;font-weight:600;flex:1;">Línea</button>
+                    <button id="ctrl-chart-bar" class="btn" onclick="setChartType('bar')" style="padding:0.4rem 1rem;font-size:14px;font-weight:600;flex:1;">Barra</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    </aside>
+
+    <main class="dash-main">
+
+    <!-- KPI CARDS -->
+    <div class="kpi-grid" id="kpi-area">
+        <div class="kpi-card"><p class="kpi-label">Proyectos</p><p class="kpi-value" id="kpi-proy">—</p></div>
+        <div class="kpi-card"><p class="kpi-label">Monto total</p><p class="kpi-value" id="kpi-monto">—</p></div>
+        <div class="kpi-card"><p class="kpi-label">Monto máx</p><p class="kpi-value" id="kpi-max">—</p></div>
+        <div class="kpi-card"><p class="kpi-label">Monto mín</p><p class="kpi-value" id="kpi-min">—</p></div>
+    </div>
+
+    <!-- CHARTS -->
+    <div class="chart-grid" id="chart-area">
+        <div class="chart-box full">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.3rem;">
+                <h3 id="evol-title" style="margin:0;">Evolución temporal</h3>
+                <div style="position:relative;">
+                    <div id="linea-dropdown" tabindex="0" style="border:1px solid var(--neutral-40);padding:0.3rem 0.5rem;font-size:12px;font-family:var(--mono-font);background:var(--neutral-0);color:var(--neutral-80);cursor:pointer;min-width:660px;" onclick="toggleDropdown()" onkeydown="if(event.key==='Enter')toggleDropdown()">
+                        <span id="linea-dropdown-label">Todas las líneas</span>
+                        <span style="float:right;">&#9660;</span>
+                    </div>
+                    <div id="linea-dropdown-menu" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:99;border:1px solid var(--neutral-40);background:var(--neutral-0);box-shadow:0 4px 12px rgba(0,0,0,0.12);">
+                    <div style="padding:0.3rem;border-bottom:1px solid var(--neutral-40);">
+                        <input type="text" id="linea-search" placeholder="Buscar línea..." oninput="filterLineas(this.value)"
+                               style="width:100%;border:1px solid var(--neutral-40);padding:0.3rem 0.5rem;font-size:12px;font-family:var(--mono-font);background:var(--neutral-20);outline:none;color:var(--neutral-100);border-radius:3px;">
+                    </div>
+                    <label style="display:flex;align-items:center;gap:0.4rem;padding:0.3rem 0.6rem;font-size:12px;font-family:var(--mono-font);cursor:pointer;color:var(--primary);border-bottom:1px solid var(--neutral-40);font-weight:600;transition:background 0.1s;"
+                           onmouseover="this.style.background='var(--neutral-20)'" onmouseout="this.style.background='transparent'">
+                        <input type="checkbox" id="linea-toggle-all" checked onchange="toggleAllLineas(this)" style="accent-color:var(--primary);">
+                        Seleccionar todo
+                    </label>
+                    <div id="linea-dropdown-options" style="max-height:180px;overflow-y:auto;">
+                    {% for l in lineas %}
+                    <label class="linea-opt" data-search="{{ (l + ' ' + lineas_dict.get(l, l)).lower() }}" style="display:flex;align-items:center;gap:0.4rem;padding:0.3rem 0.6rem;font-size:12px;font-family:var(--mono-font);cursor:pointer;color:var(--neutral-100);border-bottom:1px solid var(--neutral-30);transition:background 0.1s;"
+                           onmouseover="this.style.background='var(--neutral-20)'" onmouseout="this.style.background='transparent'">
+                        <input type="checkbox" class="linea-cb" value="{{ l }}" checked onchange="lineaCheckChanged()">
+                        {{ l }} — {{ lineas_dict.get(l, l) }}
+                    </label>
+                    {% endfor %}
+                    </div>
+                </div>
+                </div>
+            </div>
+            <canvas id="ch-evol" style="max-height:576px;"></canvas>
+        </div>
+        <div class="chart-box"><h3>Líneas</h3><canvas id="ch-lineas"></canvas></div>
+        <div class="chart-box"><h3>Tipo de obra</h3><canvas id="ch-obra-tipo"></canvas></div>
+        <div class="chart-box"><h3>Rangos de monto</h3><canvas id="ch-monto-ranges"></canvas></div>
+        <div class="chart-box"><h3>Top modalidades</h3><canvas id="ch-modal"></canvas></div>
+        <div class="chart-box"><h3>Departamentos</h3><canvas id="ch-dpto"></canvas></div>
+        <div class="chart-box"><h3>Tipo persona</h3><canvas id="ch-tipo"></canvas></div>
+    </div>
+
+    <p style="text-align:center;font-size:16px;color:var(--neutral-60);margin:0.5rem 0">
+        Los gráficos se actualizan automáticamente al cambiar los filtros.
+    </p>
+
+    </main>
+
+</div>
+
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+<div class="wrap">
+    <div class="footer-grid">
+        <div>
+            <h4>Mapa de proyectos audiovisuales</h4>
+            <p>Estímulos Económicos del Ministerio</p>
+            <p>de Cultura del Perú</p>
+            <p class="dim">Solo lectura</p>
+        </div>
+        <div>
+            <h5>Explore the website</h5>
+            <p><a href="/">Proyectos</a> · <a href="/dashboard">Dashboard</a></p>
+        </div>
+        <div>
+            <h5>Database</h5>
+            <p>{{ total_db }} proyectos</p>
+            <p>{{ monto_db }} otorgados</p>
+            <p class="dim">SQLite · 14 tablas</p>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        Powered by Flask · Datos DAFO · Chart.js
+    </div>
+</div>
+</div>
+
+<script>
+var ACTIVE_METRIC = 'cnt';
+var ACTIVE_CHART_TYPE = 'line';
+var LINEAS_DICT = {{ lineas_dict|tojson }};
+var CHARTS = {};
+
+function toggleTheme() {
+    var cur = document.documentElement.getAttribute('data-theme');
+    var next = cur === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('dafo-theme', next);
+    Object.values(CHARTS).forEach(function(c) { if (c) c.destroy(); });
+    CHARTS = {};
+    refreshDashboard();
+}
+function toggleAdv() {
+    document.getElementById('adv-box').classList.toggle('hidden');
+}
+
+function setMetric(m) {
+    ACTIVE_METRIC = m;
+    document.getElementById('ctrl-metric-cnt').className = m === 'cnt' ? 'btn btn-primary' : 'btn';
+    document.getElementById('ctrl-metric-amt').className = m === 'amt' ? 'btn btn-primary' : 'btn';
+    Object.values(CHARTS).forEach(function(c) { if (c) c.destroy(); });
+    CHARTS = {};
+    refreshDashboard();
+}
+
+function setChartType(t) {
+    ACTIVE_CHART_TYPE = t;
+    document.getElementById('ctrl-chart-line').className = t === 'line' ? 'btn btn-primary' : 'btn';
+    document.getElementById('ctrl-chart-bar').className = t === 'bar' ? 'btn btn-primary' : 'btn';
+    Object.values(CHARTS).forEach(function(c) { if (c) c.destroy(); });
+    CHARTS = {};
+    refreshDashboard();
+}
+
+function getSelectedLineas() {
+    var checks = document.querySelectorAll('#linea-dropdown-menu input.linea-cb:checked');
+    return Array.from(checks).map(function(c) { return c.value; });
+}
+
+function updateDropdownLabel() {
+    var checks = document.querySelectorAll('#linea-dropdown-menu input.linea-cb');
+    var checked = document.querySelectorAll('#linea-dropdown-menu input.linea-cb:checked');
+    var label = document.getElementById('linea-dropdown-label');
+    var total = checks.length;
+    var sel = checked.length;
+    if (sel === total) label.textContent = 'Todas las líneas seleccionadas';
+    else if (sel === 0) label.textContent = 'Ninguna línea seleccionada';
+    else label.textContent = sel + ' de ' + total + ' líneas seleccionadas';
+    // Update toggle-all checkbox
+    var ta = document.getElementById('linea-toggle-all');
+    if (ta) {
+        ta.checked = sel === total;
+        ta.indeterminate = sel > 0 && sel < total;
+    }
+}
+
+function filterLineas(q) {
+    var raw = q.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    var opts = document.querySelectorAll('#linea-dropdown-options .linea-opt');
+    opts.forEach(function(el) {
+        var searchText = el.getAttribute('data-search');
+        var match = searchText.indexOf(raw) >= 0;
+        el.style.display = match ? '' : 'none';
+    });
+}
+
+function toggleAllLineas(el) {
+    var checks = document.querySelectorAll('#linea-dropdown-menu input.linea-cb');
+    checks.forEach(function(c) { c.checked = el.checked; });
+    updateDropdownLabel();
+    Object.values(CHARTS).forEach(function(c) { if (c) c.destroy(); });
+    CHARTS = {};
+    refreshDashboard();
+}
+
+function toggleDropdown() {
+    var menu = document.getElementById('linea-dropdown-menu');
+    menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+}
+
+function lineaCheckChanged() {
+    updateDropdownLabel();
+    Object.values(CHARTS).forEach(function(c) { if (c) c.destroy(); });
+    CHARTS = {};
+    refreshDashboard();
+}
+
+// Close dropdown on outside click
+document.addEventListener('click', function(e) {
+    var dd = document.getElementById('linea-dropdown');
+    var menu = document.getElementById('linea-dropdown-menu');
+    if (dd && menu && !dd.contains(e.target) && !menu.contains(e.target)) {
+        menu.style.display = 'none';
+    }
+});
+
+function getFilters() {
+    function mv(id) { var e = document.getElementById(id); return e ? e.value : ''; }
+    function ma(id) { var v = mv(id); return v ? [v] : []; }
+    return {
+        yf: mv('f-yf'), yt: mv('f-yt'),
+        la: ma('f-la'), rf: ma('f-rf'), mf: ma('f-mf'),
+        tp: mv('f-tp'), mm: mv('f-mm'), mmn: mv('f-mmn')
+    };
+}
+
+function isDark() {
+    return document.documentElement.getAttribute('data-theme') === 'dark';
+}
+
+function chartColors() {
+    var dark = isDark();
+    return {
+        grid: dark ? '#3A3A3A' : '#E0E0E0',
+        text: dark ? '#999' : '#707070',
+        bar: dark ? '#666' : '#333',
+        barAlpha: dark ? 'rgba(200,200,200,0.3)' : 'rgba(0,0,0,0.08)',
+        bg: 'transparent',
+        primary: dark ? '#FF4775' : '#E80247',
+    };
+}
+
+function newChart(id, type, labels, datasets, opts) {
+    var ctx = document.getElementById(id);
+    if (!ctx) return null;
+    var c = CHARTS[id];
+    if (c) { c.destroy(); }
+    var colors = chartColors();
+    var defaultOpts = {
+        responsive: true, maintainAspectRatio: true,
+        plugins: {
+            legend: { labels: { color: colors.text, font: { size: 10, family: "'IBM Plex Mono',monospace" }, boxWidth: 10, padding: 8 } },
+        },
+        scales: type === 'doughnut' || type === 'pie' ? {} : {
+            x: { ticks: { color: colors.text, font: { size: 9 } }, grid: { color: colors.grid } },
+            y: { ticks: { color: colors.text, font: { size: 9 } }, grid: { color: colors.grid } },
+        }
+    };
+    for (var k in opts) { if (!defaultOpts[k]) defaultOpts[k] = opts[k]; else for (var k2 in opts[k]) defaultOpts[k][k2] = opts[k][k2]; }
+    for (var i = 0; i < datasets.length; i++) {
+        if (!datasets[i].backgroundColor) datasets[i].backgroundColor = colors.bar;
+        if (!datasets[i].borderColor) datasets[i].borderColor = colors.bar;
+        if (!datasets[i].borderWidth) datasets[i].borderWidth = 0;
+    }
+    var chart = new Chart(ctx, { type: type, data: { labels: labels, datasets: datasets }, options: defaultOpts });
+    CHARTS[id] = chart;
+    return chart;
+}
+
+function fmtSoles(v) {
+    if (v >= 1000000) return 'S/ ' + (v / 1000000).toFixed(1) + 'M';
+    if (v >= 1000) return 'S/ ' + (v / 1000).toFixed(1) + 'K';
+    return 'S/ ' + v.toFixed(0);
+}
+
+function pickColor(i, total, dark) {
+    var hue = (i * 137.508) % 360;
+    var sat = dark ? 50 : 65;
+    var lig = dark ? 55 : 45;
+    return 'hsl(' + hue + ',' + sat + '%,' + lig + '%)';
+}
+
+function refreshDashboard() {
+    var f = getFilters();
+    var params = new URLSearchParams();
+    if (f.yf) params.set('yf', f.yf);
+    if (f.yt) params.set('yt', f.yt);
+    f.la.forEach(function(v) { params.append('la', v); });
+    f.rf.forEach(function(v) { params.append('rf', v); });
+    f.mf.forEach(function(v) { params.append('mf', v); });
+    if (f.tp) params.set('tp', f.tp);
+    if (f.mm && f.mm != '999999999') params.set('mm', f.mm);
+    if (f.mmn && f.mmn != '0') params.set('mmn', f.mmn);
+    params.set('metric', ACTIVE_METRIC);
+
+    fetch('/api/dashboard?' + params.toString())
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+        var colors = chartColors();
+        var dark = isDark();
+        var metric = ACTIVE_METRIC;
+        var chartType = ACTIVE_CHART_TYPE;
+
+        // KPIs
+        if (d.kpi) {
+            document.getElementById('kpi-proy').textContent = (d.kpi.total_proy || 0).toLocaleString();
+            document.getElementById('kpi-monto').textContent = fmtSoles(d.kpi.total_monto || 0);
+            document.getElementById('kpi-max').textContent = fmtSoles(d.kpi.max_monto || 0);
+            document.getElementById('kpi-min').textContent = fmtSoles(d.kpi.min_monto || 0);
+        }
+
+        // ─── EVOLUCIÓN TEMPORAL ───
+        var selLineas = getSelectedLineas();
+        var evolData = d.linea_evolucion || [];
+        var allAnios = [...new Set(evolData.map(function(x) { return x.anio; }))].sort();
+        var evolTitle = metric === 'cnt' ? 'Evolución — Cantidad de proyectos' : 'Evolución — Monto total (S/)';
+        document.getElementById('evol-title').textContent = evolTitle;
+
+        if (chartType === 'bar') {
+            // Stacked bar per year
+            var filtered = selLineas.length ? evolData.filter(function(x) { return selLineas.indexOf(x.codigo) >= 0; }) : evolData;
+            var cods = [...new Set(filtered.map(function(x) { return x.codigo; }))].sort();
+            var map = {};
+            filtered.forEach(function(x) { map[x.anio + '|' + x.codigo] = x; });
+            var ds = cods.map(function(c, i) {
+                var vals = allAnios.map(function(a) {
+                    var v = map[a + '|' + c];
+                    return v ? (metric === 'cnt' ? v.cnt : v.total) : 0;
+                });
+                return {
+                    label: LINEAS_DICT[c] || c, data: vals,
+                    backgroundColor: pickColor(i, cods.length, dark),
+                    borderWidth: 0, borderRadius: 2,
+                };
+            });
+            newChart('ch-evol', 'bar', allAnios, ds, {
+                indexAxis: 'y',
+                scales: { x: { stacked: true, beginAtZero: true }, y: { stacked: true } },
+                plugins: { tooltip: { callbacks: { label: function(ctx) {
+                    var val = ctx.parsed.x;
+                    return (LINEAS_DICT[ctx.dataset.label] || ctx.dataset.label) + ': ' + (metric === 'cnt' ? val + ' proyectos' : fmtSoles(val));
+                } } } },
+            });
+        } else {
+            // Line chart — one line per selected line
+            var filtered = selLineas.length ? evolData.filter(function(x) { return selLineas.indexOf(x.codigo) >= 0; }) : evolData;
+            var cods = [...new Set(filtered.map(function(x) { return x.codigo; }))].sort();
+            var map = {};
+            filtered.forEach(function(x) { map[x.anio + '|' + x.codigo] = x; });
+            var ds = cods.map(function(c, i) {
+                var vals = allAnios.map(function(a) {
+                    var v = map[a + '|' + c];
+                    return v ? (metric === 'cnt' ? v.cnt : v.total) : null;
+                });
+                return {
+                    label: LINEAS_DICT[c] || c, data: vals,
+                    borderColor: pickColor(i, cods.length, dark),
+                    backgroundColor: pickColor(i, cods.length, dark).replace('hsl', 'hsla').replace(')', ',0.12)'),
+                    fill: false,
+                    tension: 0.2,
+                    pointRadius: 3,
+                    borderWidth: 2,
+                };
+            });
+            if (!ds.length) {
+                ds = [{ label: 'Sin datos', data: [], borderColor: colors.grid }];
+            }
+            newChart('ch-evol', 'line', allAnios, ds, {
+                scales: {
+                    y: { beginAtZero: true, ticks: { callback: function(v) { return metric === 'cnt' ? v : fmtSoles(v); } } },
+                },
+                plugins: {
+                    tooltip: { callbacks: { label: function(ctx) {
+                        var val = ctx.parsed.y;
+                        return ctx.dataset.label + ': ' + (metric === 'cnt' ? val + ' proyectos' : fmtSoles(val));
+                    } } },
+                    legend: { position: 'bottom', labels: { boxWidth: 12, padding: 6 } },
+                },
+            });
+        }
+
+        // ─── LÍNEAS (bar) ───
+        var lineasRes = d.linea_resumen || [];
+        var lrLabels = lineasRes.map(function(x) { return LINEAS_DICT[x.codigo] || x.codigo; });
+        var lrVals = lineasRes.map(function(x) { return metric === 'cnt' ? x.cnt : x.total; });
+        newChart('ch-lineas', 'bar', lrLabels, [{
+            data: lrVals, backgroundColor: colors.bar, borderRadius: 2,
+        }], {
+            indexAxis: 'y',
+            plugins: { legend: { display: false }, tooltip: { callbacks: { label: function(ctx) {
+                var val = ctx.parsed.x;
+                return metric === 'cnt' ? val + ' proyectos' : fmtSoles(val);
+            } } } },
+            scales: { x: { beginAtZero: true, ticks: { callback: function(v) { return metric === 'cnt' ? v : fmtSoles(v); } } } },
+        });
+
+        // ─── TIPO DE OBRA (doughnut) ───
+        var otData = d.obra_tipo || [];
+        var otVals = otData.map(function(x) { return metric === 'cnt' ? x.cnt : x.total; });
+        var otLabels = otData.map(function(x) { return x.tipo; });
+        var otColors = otData.map(function(_, i) { return pickColor(i, otData.length, dark); });
+        newChart('ch-obra-tipo', 'doughnut', otLabels, [{
+            data: otVals, backgroundColor: otColors, borderWidth: 0,
+        }], {
+            plugins: {
+                legend: { position: 'bottom' },
+                tooltip: { callbacks: { label: function(ctx) {
+                    var val = ctx.parsed;
+                    var lb = ctx.label;
+                    return lb + ': ' + (metric === 'cnt' ? val + ' proyectos' : fmtSoles(val));
+                } } },
+            },
+        });
+
+        // ─── RANGOS DE MONTO (bar) ───
+        var mrData = d.monto_ranges || [];
+        var mrLabels = mrData.map(function(x) { return x.rango; });
+        var mrVals = mrData.map(function(x) { return metric === 'cnt' ? x.cnt : x.total; });
+        newChart('ch-monto-ranges', 'bar', mrLabels, [{
+            data: mrVals, backgroundColor: colors.bar, borderRadius: 2,
+        }], {
+            plugins: { legend: { display: false }, tooltip: { callbacks: { label: function(ctx) {
+                var val = ctx.parsed.y;
+                return metric === 'cnt' ? val + ' proyectos' : fmtSoles(val);
+            } } } },
+            scales: { y: { beginAtZero: true, ticks: { callback: function(v) { return metric === 'cnt' ? v : fmtSoles(v); } } } },
+        });
+
+        // ─── MODALIDADES (bar) ───
+        var modalRev = (d.modal || []).slice().reverse();
+        var mLabels = modalRev.map(function(x) { return x.nombre.length > 30 ? x.nombre.substring(0,30)+'...' : x.nombre; });
+        var mVals = modalRev.map(function(x) { return metric === 'cnt' ? x.cnt : x.total; });
+        newChart('ch-modal', 'bar', mLabels, [{
+            data: mVals, backgroundColor: colors.bar, borderRadius: 2,
+        }], {
+            indexAxis: 'y',
+            plugins: { legend: { display: false }, tooltip: { callbacks: { label: function(ctx) {
+                var val = ctx.parsed.x;
+                return metric === 'cnt' ? val + ' proyectos' : fmtSoles(val);
+            } } } },
+            scales: { x: { beginAtZero: true, ticks: { callback: function(v) { return metric === 'cnt' ? v : fmtSoles(v); } } } },
+        });
+
+        // ─── DEPARTAMENTOS (bar) ───
+        var dptoRev = (d.dpto || []).slice().reverse();
+        var dLabels = dptoRev.map(function(x) { return x.dpto; });
+        var dVals = dptoRev.map(function(x) { return metric === 'cnt' ? x.cnt : x.total; });
+        newChart('ch-dpto', 'bar', dLabels, [{
+            data: dVals, backgroundColor: colors.bar, borderRadius: 2,
+        }], {
+            indexAxis: 'y',
+            plugins: { legend: { display: false }, tooltip: { callbacks: { label: function(ctx) {
+                var val = ctx.parsed.x;
+                return metric === 'cnt' ? val + ' proyectos' : fmtSoles(val);
+            } } } },
+            scales: { x: { beginAtZero: true, ticks: { callback: function(v) { return metric === 'cnt' ? v : fmtSoles(v); } } } },
+        });
+
+        // ─── TIPO PERSONA (doughnut) ───
+        var tipoLabels = { 'natural': 'Natural', 'juridica': 'Jurídica', 'sin dato': 'Sin dato' };
+        var tLabels = (d.tipo || []).map(function(x) { return tipoLabels[x.tipo] || x.tipo; });
+        var tVals = (d.tipo || []).map(function(x) { return metric === 'cnt' ? x.cnt : x.total; });
+        var donutColors = [colors.bar, colors.primary, colors.grid];
+        newChart('ch-tipo', 'doughnut', tLabels, [{
+            data: tVals, backgroundColor: donutColors.slice(0, tVals.length), borderWidth: 0,
+        }], {
+            plugins: {
+                legend: { position: 'bottom' },
+                tooltip: { callbacks: { label: function(ctx) {
+                    var val = ctx.parsed;
+                    var lb = ctx.label;
+                    return lb + ': ' + (metric === 'cnt' ? val + ' proyectos' : fmtSoles(val));
+                } } },
+            },
+        });
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    refreshDashboard();
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,317 @@
+-- Seed: convocatorias, líneas concursables y datos 2025
+-- Ejecutar: sqlite3 concursos_dafo.db < seed.sql
+
+PRAGMA foreign_keys = ON;
+
+BEGIN TRANSACTION;
+
+-- ============================================================
+-- 1. CONVOCATORIAS (2019–2025)
+-- ============================================================
+INSERT INTO convocatoria (anio, nombre, activa) VALUES
+    (2019, 'Estímulos Económicos 2019', 0),
+    (2020, 'Estímulos Económicos 2020', 0),
+    (2021, 'Estímulos Económicos 2021', 0),
+    (2022, 'Estímulos Económicos 2022', 0),
+    (2023, 'Estímulos Económicos 2023', 0),
+    (2024, 'Estímulos Económicos 2024 — Edición Bicentenario', 0),
+    (2025, 'Estímulos Económicos 2025', 1);
+
+-- ============================================================
+-- 2. LÍNEAS CONCURSABLES
+-- ============================================================
+INSERT INTO linea_concursable (codigo, nombre_canonico, tipo_beneficiario) VALUES
+    ('EPI',  'Estímulo a la Promoción Internacional',                                 'natural'),
+    ('EDI',  'Estímulo a la Distribución Cinematográfica',                            'juridica'),
+    ('CPF',  'Concurso de Proyectos de Ficción',                                      'juridica'),
+    ('CDO',  'Concurso de Proyectos de Documental',                                   'juridica'),
+    ('CGC',  'Concurso de Proyectos de Gestión para el Audiovisual',                  'juridica'),
+    ('CFO',  'Concurso para la Formación Audiovisual',                               'juridica'),
+    ('CPC',  'Concurso de Proyectos de Cortometrajes',                                'juridica'),
+    ('CCC',  'Concurso de Cine en Construcción',                                      'juridica'),
+    ('CPA',  'Concurso de Proyectos de Animación',                                    'juridica'),
+    ('PDT',  'Premio a la Destacada Trayectoria en el Ámbito Audiovisual',            'natural'),
+    ('EPA',  'Estímulo a la Preservación Audiovisual',                                'juridica'),
+    ('CIC',  'Concurso de Video y Cine Indígena y Afrodescendiente Comunitario',      'juridica'),
+    ('CCM',  'Concurso de Coproducciones Minoritarias',                               'juridica'),
+    ('CDC',  'Concurso de Distribución y Circulación de Obras',                      'juridica'),
+    ('CGS',  'Concurso de Salas de Exhibición Alternativa',                           'juridica'),
+    ('CDV',  'Concurso de Desarrollo de Videojuegos',                                 'juridica'),
+    ('CIN',  'Concurso de Proyectos de Investigación sobre Cinematografía y Audiovisual', 'juridica'),
+    ('CCE',  'Concurso de Creación Experimental',                                     'juridica'),
+    -- Históricas (no activas en 2025 pero existieron)
+    ('NMA',  'Concurso Nacional de Proyectos de Nuevos Medios Audiovisuales',          'juridica'),
+    ('PDS',  'Concurso de Pilotos de Serie / Desarrollo de Series',                   'juridica'),
+    ('DLO',  'Concurso de Doblaje de Obras en Lenguas Originarias',                   'juridica'),
+    ('CBI',  'Concurso de Cortometrajes del Bicentenario',                            'juridica'),
+    ('FCP',  'Estímulo a la Formación de Públicos a través de Festivales y Encuentros', 'juridica'),
+    ('FCA',  'Estímulo al Fortalecimiento de Capacidades',                            'juridica'),
+    ('PAL',  'Concurso de Producción Alternativa',                                    'juridica'),
+    ('CDL',  'Concurso de Distribución de Largometraje',                              'juridica');
+
+-- ============================================================
+-- 3. CONCURSO ANUAL 2025
+-- ============================================================
+INSERT INTO concurso_anual (convocatoria_id, linea_concursable_id, nombre_usado, presupuesto_asignado)
+SELECT 7, id, nombre_canonico, NULL FROM linea_concursable
+WHERE codigo IN ('EPI','EDI','CPF','CDO','CGC','CFO','CPC','CCC','CPA','PDT','EPA','CIC','CCM','CDC','CGS','CDV','CIN','CCE');
+
+-- ============================================================
+-- 4. MODALIDADES 2025
+-- ============================================================
+-- Helper: obtiene el id del concurso_anual 2025 por código de línea
+-- CPF (Ficción)
+INSERT INTO modalidad (concurso_anual_id, nombre)
+SELECT ca.id, 'Desarrollo' FROM concurso_anual ca JOIN linea_concursable lc ON ca.linea_concursable_id = lc.id WHERE lc.codigo = 'CPF' AND ca.convocatoria_id = 7;
+INSERT INTO modalidad (concurso_anual_id, nombre)
+SELECT ca.id, 'Nuevos realizadores' FROM concurso_anual ca JOIN linea_concursable lc ON ca.linea_concursable_id = lc.id WHERE lc.codigo = 'CPF' AND ca.convocatoria_id = 7;
+INSERT INTO modalidad (concurso_anual_id, nombre)
+SELECT ca.id, 'Regiones' FROM concurso_anual ca JOIN linea_concursable lc ON ca.linea_concursable_id = lc.id WHERE lc.codigo = 'CPF' AND ca.convocatoria_id = 7;
+INSERT INTO modalidad (concurso_anual_id, nombre)
+SELECT ca.id, 'Tercer largometraje a más' FROM concurso_anual ca JOIN linea_concursable lc ON ca.linea_concursable_id = lc.id WHERE lc.codigo = 'CPF' AND ca.convocatoria_id = 7;
+
+-- CDO (Documental)
+INSERT INTO modalidad (concurso_anual_id, nombre)
+SELECT ca.id, 'Desarrollo' FROM concurso_anual ca JOIN linea_concursable lc ON ca.linea_concursable_id = lc.id WHERE lc.codigo = 'CDO' AND ca.convocatoria_id = 7;
+INSERT INTO modalidad (concurso_anual_id, nombre)
+SELECT ca.id, 'Producción' FROM concurso_anual ca JOIN linea_concursable lc ON ca.linea_concursable_id = lc.id WHERE lc.codigo = 'CDO' AND ca.convocatoria_id = 7;
+
+-- CPC (Cortometrajes)
+INSERT INTO modalidad (concurso_anual_id, nombre)
+SELECT ca.id, 'Ópera prima' FROM concurso_anual ca JOIN linea_concursable lc ON ca.linea_concursable_id = lc.id WHERE lc.codigo = 'CPC' AND ca.convocatoria_id = 7;
+INSERT INTO modalidad (concurso_anual_id, nombre)
+SELECT ca.id, 'Segunda obra a más' FROM concurso_anual ca JOIN linea_concursable lc ON ca.linea_concursable_id = lc.id WHERE lc.codigo = 'CPC' AND ca.convocatoria_id = 7;
+
+-- CPA (Animación)
+INSERT INTO modalidad (concurso_anual_id, nombre)
+SELECT ca.id, 'Cortometrajes' FROM concurso_anual ca JOIN linea_concursable lc ON ca.linea_concursable_id = lc.id WHERE lc.codigo = 'CPA' AND ca.convocatoria_id = 7;
+INSERT INTO modalidad (concurso_anual_id, nombre)
+SELECT ca.id, 'Desarrollo' FROM concurso_anual ca JOIN linea_concursable lc ON ca.linea_concursable_id = lc.id WHERE lc.codigo = 'CPA' AND ca.convocatoria_id = 7;
+INSERT INTO modalidad (concurso_anual_id, nombre)
+SELECT ca.id, 'Preproducción' FROM concurso_anual ca JOIN linea_concursable lc ON ca.linea_concursable_id = lc.id WHERE lc.codigo = 'CPA' AND ca.convocatoria_id = 7;
+INSERT INTO modalidad (concurso_anual_id, nombre)
+SELECT ca.id, 'Producción' FROM concurso_anual ca JOIN linea_concursable lc ON ca.linea_concursable_id = lc.id WHERE lc.codigo = 'CPA' AND ca.convocatoria_id = 7;
+INSERT INTO modalidad (concurso_anual_id, nombre)
+SELECT ca.id, 'Desarrollo de series' FROM concurso_anual ca JOIN linea_concursable lc ON ca.linea_concursable_id = lc.id WHERE lc.codigo = 'CPA' AND ca.convocatoria_id = 7;
+
+-- CDV (Videojuegos)
+INSERT INTO modalidad (concurso_anual_id, nombre)
+SELECT ca.id, 'Preproducción' FROM concurso_anual ca JOIN linea_concursable lc ON ca.linea_concursable_id = lc.id WHERE lc.codigo = 'CDV' AND ca.convocatoria_id = 7;
+INSERT INTO modalidad (concurso_anual_id, nombre)
+SELECT ca.id, 'Producción' FROM concurso_anual ca JOIN linea_concursable lc ON ca.linea_concursable_id = lc.id WHERE lc.codigo = 'CDV' AND ca.convocatoria_id = 7;
+
+-- CGC (Gestión)
+INSERT INTO modalidad (concurso_anual_id, nombre)
+SELECT ca.id, 'Festivales, encuentros y muestras' FROM concurso_anual ca JOIN linea_concursable lc ON ca.linea_concursable_id = lc.id WHERE lc.codigo = 'CGC' AND ca.convocatoria_id = 7;
+INSERT INTO modalidad (concurso_anual_id, nombre)
+SELECT ca.id, 'Fortalecimiento de capacidades' FROM concurso_anual ca JOIN linea_concursable lc ON ca.linea_concursable_id = lc.id WHERE lc.codigo = 'CGC' AND ca.convocatoria_id = 7;
+
+-- ============================================================
+-- 5. DATOS MUESTRA — EPI (Promoción Internacional)
+-- ============================================================
+INSERT INTO persona (tipo, nombres, apellidos, dni, region)
+VALUES ('natural', 'Macarena', 'Coello Neyra', '47028030', 'Lima');
+
+INSERT INTO evento_internacional (nombre, pais, modalidad, tipo_evento)
+VALUES ('Salón de Productores y Proyectos Cinematográficos FICCali', 'Colombia', 'presencial', 'mercado');
+
+INSERT INTO obra (titulo, tipo) VALUES ('Allqu', 'largometraje');
+
+INSERT INTO proyecto (concurso_anual_id, persona_beneficiaria_id, obra_id, monto_otorgado)
+SELECT ca.id, p.id, ob.id, 6000.00
+FROM concurso_anual ca, persona p, obra ob
+WHERE ca.id = (SELECT ca2.id FROM concurso_anual ca2 JOIN linea_concursable lc ON ca2.linea_concursable_id = lc.id WHERE lc.codigo = 'EPI' AND ca2.convocatoria_id = 7)
+  AND p.dni = '47028030'
+  AND ob.titulo = 'Allqu';
+
+INSERT INTO proyecto_evento (proyecto_id, evento_internacional_id)
+VALUES (1, 1);
+
+INSERT INTO resolucion (concurso_anual_id, numero, fecha_contenido, tipo, url_pdf)
+SELECT ca.id, '000611-2025-DGIA-VMPCIC/MC', '2025-08-08', 'resolucion_beneficiario',
+       'https://estimuloseconomicos.cultura.gob.pe/sites/default/files/concursos/archivos/doc-4/2025-EPI-RD000611-2025-DGIA-VMPCIC-MC.pdf'
+FROM concurso_anual ca
+WHERE ca.id = (SELECT ca2.id FROM concurso_anual ca2 JOIN linea_concursable lc ON ca2.linea_concursable_id = lc.id WHERE lc.codigo = 'EPI' AND ca2.convocatoria_id = 7);
+
+INSERT INTO proyecto_resolucion (proyecto_id, resolucion_id) VALUES (1, 1);
+
+-- ============================================================
+-- 6. DATOS MUESTRA — EDI (Distribución Cinematográfica)
+-- ============================================================
+INSERT INTO persona (tipo, razon_social, ruc, region)
+VALUES ('juridica', 'Cine Aymara Studios E.I.R.L.', '20448736301', 'Puno');
+
+INSERT INTO obra (titulo, tipo) VALUES ('Los Indomables', 'largometraje');
+
+INSERT INTO proyecto (concurso_anual_id, persona_beneficiaria_id, obra_id, monto_otorgado)
+SELECT ca.id, p.id, ob.id, 100000.00
+FROM concurso_anual ca, persona p, obra ob
+WHERE ca.id = (SELECT ca2.id FROM concurso_anual ca2 JOIN linea_concursable lc ON ca2.linea_concursable_id = lc.id WHERE lc.codigo = 'EDI' AND ca2.convocatoria_id = 7)
+  AND p.ruc = '20448736301'
+  AND ob.titulo = 'Los Indomables';
+
+INSERT INTO resolucion (concurso_anual_id, numero, fecha_contenido, tipo, url_pdf)
+SELECT ca.id, '000549-2025-DGIA-VMPCIC/MC', '2025-07-16', 'resolucion_beneficiario',
+       'https://estimuloseconomicos.cultura.gob.pe/sites/default/files/concursos/archivos/doc-4/2025-EDI-000549-2025-DGIA-VMPCIC.pdf'
+FROM concurso_anual ca
+WHERE ca.id = (SELECT ca2.id FROM concurso_anual ca2 JOIN linea_concursable lc ON ca2.linea_concursable_id = lc.id WHERE lc.codigo = 'EDI' AND ca2.convocatoria_id = 7);
+
+INSERT INTO proyecto_resolucion (proyecto_id, resolucion_id) VALUES (2, 2);
+
+-- ============================================================
+-- 7. DATOS MUESTRA — CPF Ficción / Desarrollo
+-- ============================================================
+INSERT INTO persona (tipo, razon_social, ruc, region)
+VALUES ('juridica', 'Aurora Films S.A.C.', '20614112604', 'Lima');
+
+INSERT INTO persona (tipo, nombres, apellidos, region)
+VALUES ('natural', 'Zoila Alessandra', 'Olguin Falcon', 'Lima');
+
+INSERT INTO obra (titulo, tipo) VALUES ('Javiera, Escucha Esto', 'largometraje');
+
+INSERT INTO proyecto (concurso_anual_id, modalidad_id, persona_beneficiaria_id, obra_id, categoria, monto_otorgado)
+SELECT ca.id, m.id, p.id, ob.id, 'Ópera prima', 40000.00
+FROM concurso_anual ca, modalidad m, persona p, obra ob
+WHERE ca.id = (SELECT ca2.id FROM concurso_anual ca2 JOIN linea_concursable lc ON ca2.linea_concursable_id = lc.id WHERE lc.codigo = 'CPF' AND ca2.convocatoria_id = 7)
+  AND m.concurso_anual_id = ca.id
+  AND m.nombre = 'Desarrollo'
+  AND p.ruc = '20614112604'
+  AND ob.titulo = 'Javiera, Escucha Esto';
+
+INSERT INTO proyecto_integrante (proyecto_id, persona_id, rol)
+SELECT 3, id, 'responsable' FROM persona WHERE nombres = 'Zoila Alessandra';
+INSERT INTO proyecto_integrante (proyecto_id, persona_id, rol)
+SELECT 3, id, 'director' FROM persona WHERE nombres = 'Zoila Alessandra';
+
+-- ============================================================
+-- 8. DATOS MUESTRA — CDV Videojuegos
+-- ============================================================
+INSERT INTO persona (tipo, razon_social, ruc, region)
+VALUES ('juridica', 'Kon Juegos S.A.C.', '20603385137', 'Lima');
+
+INSERT INTO persona (tipo, nombres, apellidos, region)
+VALUES ('natural', 'Roberto Jose', 'Ballon Sevillano', 'Lima');
+
+INSERT INTO obra (titulo, tipo) VALUES ('Runa Lazos Espirituales 2025', 'videojuego');
+
+INSERT INTO proyecto (concurso_anual_id, modalidad_id, persona_beneficiaria_id, obra_id, monto_otorgado)
+SELECT ca.id, m.id, p.id, ob.id, 60000.00
+FROM concurso_anual ca, modalidad m, persona p, obra ob
+WHERE ca.id = (SELECT ca2.id FROM concurso_anual ca2 JOIN linea_concursable lc ON ca2.linea_concursable_id = lc.id WHERE lc.codigo = 'CDV' AND ca2.convocatoria_id = 7)
+  AND m.concurso_anual_id = ca.id
+  AND m.nombre = 'Preproducción'
+  AND p.ruc = '20603385137'
+  AND ob.titulo = 'Runa Lazos Espirituales 2025';
+
+INSERT INTO proyecto_integrante (proyecto_id, persona_id, rol)
+SELECT 4, id, 'responsable' FROM persona WHERE nombres = 'Roberto Jose';
+
+-- ============================================================
+-- 9. DATOS MUESTRA — CIC Cine Indígena
+-- ============================================================
+INSERT INTO persona (tipo, razon_social, ruc, region)
+VALUES ('juridica', 'Federación de Comunidades Nativas del Ampiyacu (FECONA)', '20567123309', 'Loreto');
+
+INSERT INTO persona (tipo, nombres, apellidos, region)
+VALUES ('natural', 'Deyser Royer', 'Quevare Garcia', 'Loreto');
+
+INSERT INTO persona (tipo, nombres, apellidos, region)
+VALUES ('natural', 'Maritza', 'Arbilde Rios', 'Loreto');
+
+INSERT INTO obra (titulo, tipo) VALUES ('Fiesta Baaja Voces del Ampiyacu', 'corto_documental');
+
+INSERT INTO proyecto (concurso_anual_id, persona_beneficiaria_id, obra_id, monto_otorgado)
+SELECT ca.id, p.id, ob.id, 200000.00
+FROM concurso_anual ca, persona p, obra ob
+WHERE ca.id = (SELECT ca2.id FROM concurso_anual ca2 JOIN linea_concursable lc ON ca2.linea_concursable_id = lc.id WHERE lc.codigo = 'CIC' AND ca2.convocatoria_id = 7)
+  AND p.ruc = '20567123309'
+  AND ob.titulo = 'Fiesta Baaja Voces del Ampiyacu';
+
+INSERT INTO proyecto_integrante (proyecto_id, persona_id, rol)
+SELECT 5, id, 'responsable' FROM persona WHERE nombres = 'Deyser Royer';
+INSERT INTO proyecto_integrante (proyecto_id, persona_id, rol)
+SELECT 5, id, 'responsable' FROM persona WHERE nombres = 'Maritza';
+
+-- ============================================================
+-- 10. DATOS MUESTRA — PDT Premio Trayectoria
+-- ============================================================
+INSERT INTO persona (tipo, nombres, apellidos, dni, region)
+VALUES ('natural', 'Victor Edgar', 'Ruiz Bohorquez', '07058224', 'Lima');
+
+INSERT INTO persona (tipo, nombres, apellidos, dni, region)
+VALUES ('natural', 'Andrés Paul', 'Magallanes Magallanes', '09867917', 'Lima');
+
+INSERT INTO obra (titulo, tipo) VALUES ('Premio Trayectoria — Victor Edgar Ruiz Bohorquez', 'trayectoria');
+
+INSERT INTO proyecto (concurso_anual_id, persona_beneficiaria_id, obra_id, monto_otorgado)
+SELECT ca.id, p.id, ob.id, 20000.00
+FROM concurso_anual ca, persona p, obra ob
+WHERE ca.id = (SELECT ca2.id FROM concurso_anual ca2 JOIN linea_concursable lc ON ca2.linea_concursable_id = lc.id WHERE lc.codigo = 'PDT' AND ca2.convocatoria_id = 7)
+  AND p.dni = '07058224'
+  AND ob.titulo = 'Premio Trayectoria — Victor Edgar Ruiz Bohorquez';
+
+INSERT INTO proyecto_integrante (proyecto_id, persona_id, rol)
+SELECT 6, id, 'presenta_a' FROM persona WHERE dni = '09867917';
+
+-- ============================================================
+-- 11. DATOS MUESTRA — EPA Preservación Audiovisual
+-- ============================================================
+INSERT INTO persona (tipo, razon_social, ruc, region)
+VALUES ('juridica', 'Sudaca Films E.I.R.L.', '20600907027', 'Lima');
+
+INSERT INTO persona (tipo, nombres, apellidos, dni, region)
+VALUES ('natural', 'Maria Teresa', 'Ugas Castro', '25679706', 'Lima');
+
+INSERT INTO obra (titulo, tipo) VALUES ('A la Media Noche y Media', 'largometraje');
+
+INSERT INTO proyecto (concurso_anual_id, persona_beneficiaria_id, obra_id, monto_otorgado)
+SELECT ca.id, p.id, ob.id, 80000.00
+FROM concurso_anual ca, persona p, obra ob
+WHERE ca.id = (SELECT ca2.id FROM concurso_anual ca2 JOIN linea_concursable lc ON ca2.linea_concursable_id = lc.id WHERE lc.codigo = 'EPA' AND ca2.convocatoria_id = 7)
+  AND p.ruc = '20600907027'
+  AND ob.titulo = 'A la Media Noche y Media';
+
+INSERT INTO proyecto_integrante (proyecto_id, persona_id, rol)
+SELECT 7, id, 'responsable' FROM persona WHERE dni = '25679706';
+
+-- ============================================================
+-- 12. DATOS MUESTRA — CGC Gestión / Festivales
+-- ============================================================
+INSERT INTO persona (tipo, razon_social, ruc, region)
+VALUES ('juridica', 'Pelikan Pictures Entertainment E.I.R.L.', '20600343808', 'Lima');
+
+INSERT INTO persona (tipo, nombres, apellidos, region)
+VALUES ('natural', 'Susanne Karoline', 'Pelikan Rivera', 'Lima');
+
+INSERT INTO obra (titulo, tipo) VALUES ('Festival de Cine Social y Derechos Humanos', 'festival');
+
+INSERT INTO proyecto (concurso_anual_id, modalidad_id, persona_beneficiaria_id, obra_id, categoria, monto_otorgado)
+SELECT ca.id, m.id, p.id, ob.id, 'Festivales primeras ediciones', 60000.00
+FROM concurso_anual ca, modalidad m, persona p, obra ob
+WHERE ca.id = (SELECT ca2.id FROM concurso_anual ca2 JOIN linea_concursable lc ON ca2.linea_concursable_id = lc.id WHERE lc.codigo = 'CGC' AND ca2.convocatoria_id = 7)
+  AND m.concurso_anual_id = ca.id
+  AND m.nombre = 'Festivales, encuentros y muestras'
+  AND p.ruc = '20600343808'
+  AND ob.titulo = 'Festival de Cine Social y Derechos Humanos';
+
+INSERT INTO proyecto_integrante (proyecto_id, persona_id, rol)
+SELECT 8, id, 'responsable' FROM persona WHERE nombres = 'Susanne Karoline';
+
+-- ============================================================
+-- 13. DOCUMENTOS MUESTRA
+-- ============================================================
+INSERT INTO documento (concurso_anual_id, tipo_doc, url, titulo)
+SELECT ca.id, 'resultado',
+       'https://estimuloseconomicos.cultura.gob.pe/sites/default/files/concursos/archivos/doc-4/2025-CPF-D-FalloFinal.pdf',
+       'Fallo final — Ficción / Desarrollo'
+FROM concurso_anual ca
+WHERE ca.id = (SELECT ca2.id FROM concurso_anual ca2 JOIN linea_concursable lc ON ca2.linea_concursable_id = lc.id WHERE lc.codigo = 'CPF' AND ca2.convocatoria_id = 7);
+
+INSERT INTO documento (concurso_anual_id, tipo_doc, url, titulo)
+SELECT ca.id, 'resultado',
+       'https://estimuloseconomicos.cultura.gob.pe/sites/default/files/concursos/archivos/doc-4/2025-CDV-FalloFinal.pdf',
+       'Fallo final — Videojuegos'
+FROM concurso_anual ca
+WHERE ca.id = (SELECT ca2.id FROM concurso_anual ca2 JOIN linea_concursable lc ON ca2.linea_concursable_id = lc.id WHERE lc.codigo = 'CDV' AND ca2.convocatoria_id = 7);
+
+COMMIT;
