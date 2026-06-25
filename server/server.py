@@ -476,6 +476,7 @@ def api_search():
     order = "fts.rank ASC" if fts_q else "cv.anio DESC, lc.codigo"
     rows = query(
         "SELECT p.id, p.concurso_anual_id, cv.anio, lc.codigo as linea, "
+        "ca.nombre_usado as concurso_nombre, "
         "ob.titulo, ob.tipo as obra_tipo, "
         "pe.nombres, pe.apellidos, pe.tipo as tipo_per, pe.region as region, pe.razon_social, "
         "p.monto_otorgado as monto, "
@@ -571,7 +572,7 @@ def api_search():
             "obra_tipo": obra_tipo,
             "obra_tipo_label": OBRA_TIPO_LABELS.get(obra_tipo, obra_tipo.title() if obra_tipo else "—"),
             "region": html.escape(region_resolved or region_raw or "—"),
-            "modalidad": html.escape(r.get("modalidad") or "—"),
+            "modalidad": "-" if r.get("modalidad") and r.get("modalidad") == r.get("concurso_nombre") else html.escape(r.get("modalidad") or "—"),
             "integrantes": integrantes,
             "jurados": jurados_by_ca.get(r["concurso_anual_id"], []),
             "resolucion": resolucion,
