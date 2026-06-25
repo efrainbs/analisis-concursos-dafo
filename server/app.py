@@ -69,7 +69,7 @@ def get_conn():
 def query(sql, params=()):
     return pd.read_sql_query(sql, get_conn(), params=params)
 
-ANIOS = sorted(query("SELECT anio FROM convocatoria ORDER BY anio")["anio"].tolist())
+ANIOS = sorted(query("SELECT anio FROM convocatoria WHERE anio > 0 ORDER BY anio")["anio"].tolist())
 LINEAS = sorted(query("SELECT codigo FROM linea_concursable ORDER BY codigo")["codigo"].tolist())
 MONTO_DB = query("SELECT SUM(monto_otorgado) FROM proyecto").iloc[0, 0]
 TOTAL_DB = query("SELECT COUNT(*) FROM proyecto").iloc[0, 0]
@@ -117,9 +117,9 @@ with st.form("search_form", border=False):
     st.markdown('<p style="font-size:0.82rem;color:#888;margin:1rem 0 0.4rem 0">Filter by edition</p>', unsafe_allow_html=True)
     c1, c2 = st.columns(2)
     with c1:
-        yf = st.selectbox("From", ANIOS, index=0, label_visibility="collapsed")
+        yf = st.selectbox("Desde", ANIOS, index=0, label_visibility="collapsed")
     with c2:
-        yt = st.selectbox("To", ANIOS, index=len(ANIOS)-1, label_visibility="collapsed")
+        yt = st.selectbox("Hasta", ANIOS, index=len(ANIOS)-1, label_visibility="collapsed")
     st.markdown("""
     <style>
     div[data-testid="stCheckbox"] { margin: 0.5rem 0 !important; }

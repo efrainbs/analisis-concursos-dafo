@@ -150,13 +150,13 @@ input, select, textarea, button, .btn { border-radius: 4px; }
         <div id="filter-area">
         <p class="filter-label">Filter by edition</p>
         <div class="filter-row">
-            <label>From</label>
+            <label>Desde</label>
             <select id="f-yf" onchange="refreshDashboard()">
                 {% for a in anios %}
                 <option value="{{ a }}" {{ 'selected' if yf == a }}>{{ a }}</option>
                 {% endfor %}
             </select>
-            <label>To</label>
+            <label>Hasta</label>
             <select id="f-yt" onchange="refreshDashboard()">
                 {% for a in anios %}
                 <option value="{{ a }}" {{ 'selected' if yt == a }}>{{ a }}</option>

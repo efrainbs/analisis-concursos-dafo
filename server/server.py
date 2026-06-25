@@ -101,7 +101,7 @@ def build_page_url(p, current_args):
 def index():
     q, yf_val, yt_val, la, rf, mf, otf, tp, mm_val, mmn_val, adv = parse_filters()
 
-    anios_list = [r["anio"] for r in query("SELECT anio FROM convocatoria ORDER BY anio")]
+    anios_list = [r["anio"] for r in query("SELECT anio FROM convocatoria WHERE anio > 0 ORDER BY anio")]
     lineas_rows = query("SELECT codigo, nombre_canonico FROM linea_concursable ORDER BY codigo")
     lineas_list = [r["codigo"] for r in lineas_rows]
     lineas_dict = {r["codigo"]: r["nombre_canonico"] for r in lineas_rows}
@@ -396,7 +396,7 @@ def api_dashboard():
 def dashboard():
     q, yf_val, yt_val, la, rf, mf, otf, tp, mm_val, mmn_val, adv = parse_filters()
 
-    anios_list = [r["anio"] for r in query("SELECT anio FROM convocatoria ORDER BY anio")]
+    anios_list = [r["anio"] for r in query("SELECT anio FROM convocatoria WHERE anio > 0 ORDER BY anio")]
     lineas_rows = query("SELECT codigo, nombre_canonico FROM linea_concursable ORDER BY codigo")
     lineas_list = [r["codigo"] for r in lineas_rows]
     lineas_dict = {r["codigo"]: r["nombre_canonico"] for r in lineas_rows}
@@ -603,7 +603,7 @@ def api_filters():
     lineas_dict = {r["codigo"]: r["nombre_canonico"] for r in lineas_rows}
 
     # Available years (always all)
-    anios_all = [r["anio"] for r in query("SELECT anio FROM convocatoria ORDER BY anio")]
+    anios_all = [r["anio"] for r in query("SELECT anio FROM convocatoria WHERE anio > 0 ORDER BY anio")]
 
     # Common base WHERE for all filtered queries (excludes the filter being computed)
     def _base_where(exclude_cols):
@@ -679,7 +679,7 @@ def api_filters():
 def mapa():
     q, yf_val, yt_val, la, rf, mf, otf, tp, mm_val, mmn_val, adv = parse_filters()
 
-    anios_list = [r["anio"] for r in query("SELECT anio FROM convocatoria ORDER BY anio")]
+    anios_list = [r["anio"] for r in query("SELECT anio FROM convocatoria WHERE anio > 0 ORDER BY anio")]
     lineas_rows = query("SELECT codigo, nombre_canonico FROM linea_concursable ORDER BY codigo")
     lineas_list = [r["codigo"] for r in lineas_rows]
     lineas_dict = {r["codigo"]: r["nombre_canonico"] for r in lineas_rows}
