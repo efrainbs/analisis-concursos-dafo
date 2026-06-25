@@ -1,6 +1,4 @@
 # Database
-*.db
-*.db.*
 *.sqlite
 *.sqlite3
 
@@ -32,3 +30,4 @@ Thumbs.db
 
 # PDFs downloaded during extraction
 /tmp/dafo_pdfs/
+backups/
