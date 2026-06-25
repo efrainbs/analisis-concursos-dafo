@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """DAFO Explorer — Flask server with FTS5 search and dynamic facets."""
-import sqlite3, html, urllib.parse, re, unicodedata
+import sqlite3, html, urllib.parse, re, unicodedata, sys
 from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from flask import Flask, render_template, request, jsonify
 from dafo_common import REGIONS, resolve_region
 
@@ -24,7 +25,7 @@ OBRA_TIPO_LABELS = {
     "preservacion": "Preservación", "promocion": "Promoción",
     "gestion": "Gestión", "trayectoria": "Trayectoria",
 }
-app = Flask(__name__)
+app = Flask(__name__, template_folder="../templates")
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 
 
@@ -493,6 +494,28 @@ def api_search():
     lineas_rows = query("SELECT codigo, nombre_canonico FROM linea_concursable ORDER BY codigo")
     lineas_dict = {r["codigo"]: r["nombre_canonico"] for r in lineas_rows}
 
+    # Batch-fetch jurados for all distinct concurso_anual_id values
+    ca_ids = list(set(r["concurso_anual_id"] for r in rows))
+    jurados_by_ca = {}
+    if ca_ids:
+        placeholders = ",".join("?" for _ in ca_ids)
+        jurados_raw = query(
+            "SELECT j.concurso_anual_id, p.nombres, p.apellidos, p.razon_social, p.tipo, j.cargo "
+            "FROM jurado j JOIN persona p ON j.persona_id = p.id "
+            f"WHERE j.concurso_anual_id IN ({placeholders}) "
+            "ORDER BY j.concurso_anual_id, j.cargo",
+            ca_ids,
+        )
+        for j in jurados_raw:
+            ca_id = j["concurso_anual_id"]
+            if ca_id not in jurados_by_ca:
+                jurados_by_ca[ca_id] = []
+            if j["tipo"] == "juridica":
+                name = j["razon_social"] or "—"
+            else:
+                name = f"{j['nombres'] or ''} {j['apellidos'] or ''}".strip() or "—"
+            jurados_by_ca[ca_id].append(f"{name} ({j['cargo'] or '—'})")
+
     results = []
     for r in rows:
         is_juridica = r["tipo_per"] == "juridica"
@@ -550,6 +573,7 @@ def api_search():
             "region": html.escape(region_resolved or region_raw or "—"),
             "modalidad": html.escape(r.get("modalidad") or "—"),
             "integrantes": integrantes,
+            "jurados": jurados_by_ca.get(r["concurso_anual_id"], []),
             "resolucion": resolucion,
             "pdf_url": pdf_url,
         })

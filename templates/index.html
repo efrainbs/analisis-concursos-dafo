@@ -462,6 +462,11 @@ function buildResultHTML(r) {
         integrantesHtml = '<p><em>Sin integrantes</em></p>';
     }
 
+    var juradosHtml = '';
+    if (r.jurados && r.jurados.length) {
+        juradosHtml = r.jurados.map(function(j) { return '<p>– ' + j + '</p>'; }).join('');
+    }
+
     return '<div class="c-loop-movie-row">'
         + '<h3 class="c-loop-movie__title"><a href="#">' + escHtml(r.titulo) + '</a></h3>'
         + '<p class="c-loop-movie__field">' + escHtml(r.linea_nombre) + '</p>'
@@ -474,6 +479,7 @@ function buildResultHTML(r) {
         + '<p><strong>Tipo de obra:</strong> ' + escHtml(r.obra_tipo_label) + '</p>'
         + '<p><strong>Año:</strong> ' + r.anio + ' · <strong>Monto:</strong> ' + r.monto + '</p>'
         + '<p><strong>Integrantes:</strong></p>' + integrantesHtml
+        + (juradosHtml ? '<p><strong>Jurado:</strong></p>' + juradosHtml : '')
         + '<p><strong>RD:</strong> ' + rdLink + '</p>'
         + '</div>';
 }
