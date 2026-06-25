@@ -543,7 +543,7 @@ function refreshDashboard() {
             });
             newChart('ch-evol', 'bar', allAnios, ds, {
                 indexAxis: 'y',
-                scales: { x: { stacked: true, beginAtZero: true }, y: { stacked: true } },
+                scales: { x: { stacked: true, beginAtZero: true, ticks: { stepSize: 1 } }, y: { stacked: true } },
                 plugins: { tooltip: { callbacks: { label: function(ctx) {
                     var val = ctx.parsed.x;
                     return (LINEAS_DICT[ctx.dataset.label] || ctx.dataset.label) + ': ' + (metric === 'cnt' ? val + ' proyectos' : fmtSoles(val));
@@ -575,7 +575,7 @@ function refreshDashboard() {
             }
             newChart('ch-evol', 'line', allAnios, ds, {
                 scales: {
-                    y: { beginAtZero: true, ticks: { callback: function(v) { return metric === 'cnt' ? v : fmtSoles(v); } } },
+                    y: { beginAtZero: true, ticks: { stepSize: 1, callback: function(v) { return metric === 'cnt' ? v : fmtSoles(v); } } },
                 },
                 plugins: {
                     tooltip: { callbacks: { label: function(ctx) {
