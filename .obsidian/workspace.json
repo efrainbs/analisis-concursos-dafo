@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "flujo_extraccion.md",
+                "file": "docs/modelo_db_diagrama.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "flujo_extraccion"
+              "title": "modelo_db_diagrama"
             }
           }
         ]
@@ -183,8 +183,11 @@
       "bases:Create new base": false
     }
   },
-  "active": "a7ef9d7ebd77fc84",
+  "active": "223377d1be01bd41",
   "lastOpenFiles": [
+    "concursos_dafo.db-shm",
+    "concursos_dafo.db-wal",
+    "templates/Untitled",
     "DAFO_Data_Dictionary.md",
     "DAFO_Auditoria_2026-06-13.md",
     "00_Index.md"

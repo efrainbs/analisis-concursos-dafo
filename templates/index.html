@@ -189,6 +189,67 @@ button, .btn, .btn-primary { border-radius: 4px; }
 .details-box p { margin: 0.1rem 0; color: var(--neutral-80); }
 .details-box strong { color: var(--neutral-100); }
 
+/* MODAL */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(0,0,0,.5);
+  align-items: center;
+  justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--neutral-0);
+  color: var(--neutral-100);
+  border-radius: 8px;
+  max-width: 600px;
+  width: 90vw;
+  max-height: 80vh;
+  overflow-y: auto;
+  padding: 1.5rem;
+  box-shadow: 0 8px 32px rgba(0,0,0,.3);
+  position: relative;
+}
+.modal-close {
+  position: absolute;
+  top: 0.5rem; right: 0.75rem;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: var(--neutral-60);
+  cursor: pointer;
+  font-family: var(--body-font);
+}
+.modal-close:hover { color: var(--neutral-100); }
+.modal h2 {
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  margin: 0 0 0.5rem 0;
+  padding-right: 1.5rem;
+}
+.modal .meta { font-size: 14px; color: var(--neutral-60); margin-bottom: 0.75rem; }
+.modal .section { margin: 0.75rem 0; }
+.modal .section-title {
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 600;
+  color: var(--neutral-60);
+  border-bottom: 1px solid var(--neutral-40);
+  padding-bottom: 0.2rem;
+  margin-bottom: 0.3rem;
+}
+.modal .section p { margin: 0.1rem 0; color: var(--neutral-80); line-height: 1.6; }
+.modal a { color: var(--primary); text-decoration: underline; }
+.modal::-webkit-scrollbar { width: 4px; }
+.modal::-webkit-scrollbar-track { background: transparent; }
+.modal::-webkit-scrollbar-thumb { background: var(--neutral-40); border-radius: 2px; }
+.modal::-webkit-scrollbar-thumb:hover { background: var(--neutral-60); }
+
 .loading { text-align: center; padding: 1rem; color: var(--neutral-60); font-size: 16px; }
 .empty-state { padding: 1.5rem 0; text-align: center; }
 .empty-state h2 { font-size: 40px; font-weight: 400; color: var(--neutral-100); margin: 0 0 0.2rem 0; letter-spacing: -0.01em; text-transform: uppercase; }
@@ -386,6 +447,30 @@ button, .btn, .btn-primary { border-radius: 4px; }
     </div>
 </div>
 
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+    <div class="modal" id="modal">
+        <button type="button" class="modal-close" onclick="closeModal(event)">&times;</button>
+        <h2 id="modal-title"></h2>
+        <p class="meta" id="modal-meta"></p>
+        <div class="section" id="modal-section-info">
+            <div class="section-title">Información</div>
+            <p id="modal-info"></p>
+        </div>
+        <div class="section" id="modal-section-integrantes">
+            <div class="section-title">Integrantes</div>
+            <div id="modal-integrantes"></div>
+        </div>
+        <div class="section" id="modal-section-jurados">
+            <div class="section-title">Jurado</div>
+            <div id="modal-jurados"></div>
+        </div>
+        <div class="section" id="modal-section-rd">
+            <div class="section-title">Resolución</div>
+            <p id="modal-rd"></p>
+        </div>
+    </div>
+</div>
+
 <div class="footer">
 <div class="wrap">
     <div class="footer-grid">
@@ -417,6 +502,7 @@ button, .btn, .btn-primary { border-radius: 4px; }
 var currentPage = 1;
 var totalPages = 1;
 var loading = false;
+var resultsData = [];
 
 function toggleTheme() {
     var cur = document.documentElement.getAttribute('data-theme');
@@ -449,38 +535,14 @@ function getFilterParams() {
 }
 
 function buildResultHTML(r) {
-    var rdLink = r.rd && r.rd !== '—'
-        ? (r.pdf_url
-            ? '<a href="' + escHtml(r.pdf_url) + '" target="_blank" rel="noopener">' + escHtml(r.rd) + '</a>'
-            : escHtml(r.rd))
-        : '—';
+    var idx = resultsData.length;
+    resultsData.push(r);
 
-    var integrantesHtml = '';
-    if (r.integrantes && r.integrantes.length) {
-        integrantesHtml = r.integrantes.map(function(i) { return '<p>– ' + i + '</p>'; }).join('');
-    } else {
-        integrantesHtml = '<p><em>Sin integrantes</em></p>';
-    }
-
-    var juradosHtml = '';
-    if (r.jurados && r.jurados.length) {
-        juradosHtml = r.jurados.map(function(j) { return '<p>– ' + j + '</p>'; }).join('');
-    }
-
-    return '<div class="c-loop-movie-row">'
-        + '<h3 class="c-loop-movie__title"><a href="#">' + escHtml(r.titulo) + '</a></h3>'
+    return '<div class="c-loop-movie-row" onclick="openModal(' + idx + ')" style="cursor:pointer">'
+        + '<h3 class="c-loop-movie__title">' + escHtml(r.titulo) + '</h3>'
         + '<p class="c-loop-movie__field">' + escHtml(r.linea_nombre) + '</p>'
         + (r.linea === 'PDT' ? '' : '<p class="c-loop-movie__field">' + escHtml(r.persona) + ' <span style="color:var(--neutral-60);font-size:14px">(' + escHtml(r.tipo_label) + ')</span></p>')
-        + '<p class="c-loop-movie__field c-loop-movie__field--vermas"><button type="button" class="details-toggle" onclick="toggleDetails(this)" title="Ver detalles"><span class="toggle-label">Ver más</span> <span class="toggle-icon">[+]</span></button></p>'
-        + '</div>'
-        + '<div class="c-loop-movie-details">'
-        + '<p><strong>Región:</strong> ' + escHtml(r.region) + '</p>'
-        + '<p><strong>Modalidad:</strong> ' + escHtml(r.modalidad) + '</p>'
-        + '<p><strong>Tipo de obra:</strong> ' + escHtml(r.obra_tipo_label) + '</p>'
-        + '<p><strong>Año:</strong> ' + r.anio + ' · <strong>Monto:</strong> ' + r.monto + '</p>'
-        + '<p><strong>Integrantes:</strong></p>' + integrantesHtml
-        + (juradosHtml ? '<p><strong>Jurado:</strong></p>' + juradosHtml : '')
-        + '<p><strong>RD:</strong> ' + rdLink + '</p>'
+        + '<p class="c-loop-movie__field c-loop-movie__field--vermas"><span class="details-toggle" style="pointer-events:none"><span class="toggle-label">Ver más</span> <span class="toggle-icon">[+]</span></span></p>'
         + '</div>';
 }
 
@@ -491,22 +553,53 @@ function escHtml(s) {
     return d.innerHTML;
 }
 
-function toggleDetails(btn) {
-    var row = btn.closest('.c-loop-movie-row');
-    var details = row.nextElementSibling;
-    if (details && details.classList.contains('c-loop-movie-details')) {
-        details.classList.toggle('open');
-        row.classList.toggle('below-open');
-        var icon = btn.querySelector('.toggle-icon');
-        var label = btn.querySelector('.toggle-label');
-        if (details.classList.contains('open')) {
-            icon.textContent = '[-]';
-            label.textContent = 'Ver menos';
-        } else {
-            icon.textContent = '[+]';
-            label.textContent = 'Ver más';
-        }
+function openModal(idx) {
+    var r = resultsData[idx];
+    if (!r) return;
+
+    document.getElementById('modal-title').textContent = r.titulo;
+    document.getElementById('modal-meta').textContent = r.linea_nombre + ' · ' + r.anio;
+
+    var infoHtml = '';
+    if (r.persona && r.persona !== '—') infoHtml += '<p><strong>Persona:</strong> ' + escHtml(r.persona) + ' (' + escHtml(r.tipo_label) + ')</p>';
+    infoHtml += '<p><strong>Región:</strong> ' + escHtml(r.region) + '</p>'
+        + '<p><strong>Modalidad:</strong> ' + escHtml(r.modalidad) + '</p>'
+        + '<p><strong>Tipo de obra:</strong> ' + escHtml(r.obra_tipo_label) + '</p>'
+        + '<p><strong>Monto:</strong> ' + r.monto + '</p>';
+    document.getElementById('modal-info').innerHTML = infoHtml;
+
+    var intDiv = document.getElementById('modal-integrantes');
+    if (r.integrantes && r.integrantes.length) {
+        intDiv.innerHTML = r.integrantes.map(function(i) { return '<p>– ' + i + '</p>'; }).join('');
+        document.getElementById('modal-section-integrantes').style.display = '';
+    } else {
+        document.getElementById('modal-section-integrantes').style.display = 'none';
     }
+
+    var jurDiv = document.getElementById('modal-jurados');
+    if (r.jurados && r.jurados.length) {
+        jurDiv.innerHTML = r.jurados.map(function(j) { return '<p>– ' + j + '</p>'; }).join('');
+        document.getElementById('modal-section-jurados').style.display = '';
+    } else {
+        document.getElementById('modal-section-jurados').style.display = 'none';
+    }
+
+    var rdHtml = r.rd && r.rd !== '—'
+        ? (r.pdf_url ? '<a href="' + escHtml(r.pdf_url) + '" target="_blank" rel="noopener">' + escHtml(r.rd) + '</a>' : escHtml(r.rd))
+        : '—';
+    document.getElementById('modal-rd').innerHTML = rdHtml;
+
+    document.getElementById('modal-overlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeModal(e) {
+    if (e) {
+        if (e.type === 'keydown') { /* Escape key, always close */ }
+        else if (e.target !== e.currentTarget && !e.target.classList.contains('modal-close')) return;
+    }
+    document.getElementById('modal-overlay').classList.remove('open');
+    document.body.style.overflow = '';
 }
 
 function searchSuggestion(q) {
@@ -592,6 +685,7 @@ function fetchSearch(page) {
         totalPages = d.total_pages;
         document.getElementById('proj-count').textContent = d.total;
 
+        resultsData = [];
         var container = document.getElementById('results-list');
         container.innerHTML = '';
         d.results.forEach(function(r) {
@@ -634,6 +728,10 @@ function goToPage(page) {
     if (page < 1 || page > totalPages || loading) return;
     fetchSearch(page);
 }
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeModal(e);
+});
 
 document.addEventListener('DOMContentLoaded', function() {
     var filterIds = ['search-q', 'yf', 'yt', 'otf', 'la', 'rf', 'tp', 'mmn', 'mm'];
