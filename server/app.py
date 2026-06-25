@@ -94,8 +94,7 @@ st.markdown("""
         </nav>
     </div>
     <div style="display:flex;align-items:center;gap:1rem;font-size:0.78rem;color:#888">
-        <span>es</span><span style="color:#ddd">|</span>
-        <a href="#" style="color:#888;text-decoration:none">Cinefilia Ritrovata</a>
+        <span>es</span>
     </div>
 </div>
 </div>

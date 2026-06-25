@@ -315,8 +315,7 @@ button, .btn, .btn-primary { border-radius: 4px; }
         </button>
         <div class="c-header__lang">
             <span class="active-lang">es</span>
-            <span class="sep">|</span>
-            <a href="#">Cinefilia Ritrovata</a>
+
         </div>
     </div>
 </div>
@@ -564,7 +563,7 @@ function openModal(idx) {
     if (r.persona && r.persona !== '—') infoHtml += '<p><strong>Persona:</strong> ' + escHtml(r.persona) + ' (' + escHtml(r.tipo_label) + ')</p>';
     infoHtml += '<p><strong>Región:</strong> ' + escHtml(r.region) + '</p>'
         + '<p><strong>Modalidad:</strong> ' + escHtml(r.modalidad) + '</p>'
-        + '<p><strong>Tipo de obra:</strong> ' + escHtml(r.obra_tipo_label) + '</p>'
+        + '<p><strong>Categoría:</strong> ' + escHtml(r.obra_tipo_label) + '</p>'
         + '<p><strong>Monto:</strong> ' + r.monto + '</p>';
     document.getElementById('modal-info').innerHTML = infoHtml;
 
