@@ -37,8 +37,8 @@ a { color: inherit; text-decoration: none; }
 .wrap { max-width: 90vw; margin: 0 auto; padding: 0 0.5rem; }
 .hidden { display: none !important; }
 input, select, textarea, button, .btn { border-radius: 4px; }
-.c-header { position: sticky; top: 0; z-index: 100; background: var(--neutral-0); border-bottom: 1px solid var(--neutral-40); }
-.c-header::after { content: ""; display: block; position: absolute; left: 0; right: 0; bottom: -5px; height: 5px; background: linear-gradient(to bottom, var(--neutral-40), transparent); pointer-events: none; }
+.c-header { position: sticky; top: 0; z-index: 100; background: var(--neutral-0); }
+.c-header::after { content: ""; display: block; position: absolute; left: 0; right: 0; bottom: 0; height: 24px; background: linear-gradient(to bottom, var(--neutral-0), transparent); pointer-events: none; transform: translateY(100%); }
 .c-header__content { max-width: 90vw; margin: 0 auto; padding: 0 0.5rem; display: flex; align-items: center; justify-content: space-between; height: 50px; }
 .c-header__left { display: flex; align-items: center; gap: 2.5rem; }
 .c-main-logo { display: flex; align-items: center; }
