@@ -236,7 +236,7 @@ def build_base_where(params, mmn_val, mm_val, tp, yf_val, yt_val, la, rf, mf, ot
 @app.route("/api/dashboard")
 def api_dashboard():
     q, yf_val, yt_val, la, rf, mf, otf, tp, mm_val, mmn_val, adv = parse_filters()
-    rf_evol = request.args.get("rf_evol", "")
+    re_evol = request.args.getlist("re_evol")
 
     fts_q = sanitize_fts(q) if q else ""
     fts_clause = ""
@@ -253,12 +253,13 @@ def api_dashboard():
     where, params = build_base_where([], mmn_val, mm_val, tp, yf_val, yt_val, la, rf, mf, otf)
     where_sql = " AND ".join(where)
 
-    # Extra region filter for evolution chart (Todo / Lima / Regiones)
+    # Extra region filter for evolution chart (multi-select regions)
     evol_extra = ""
-    if rf_evol == "LIMA":
-        evol_extra = " AND pe.region = 'LIMA' "
-    elif rf_evol == "NO LIMA":
-        evol_extra = " AND pe.region IS NOT NULL AND pe.region != '' AND pe.region != 'SIN DATO' AND pe.region != 'LIMA' "
+    evol_params = list(params)
+    if re_evol:
+        placeholders = ",".join("?" for _ in re_evol)
+        evol_extra = f" AND pe.region IN ({placeholders}) "
+        evol_params.extend(re_evol)
     evol_where = where_sql + evol_extra
 
     # 1. Proyectos por año (evolución)
@@ -266,7 +267,7 @@ def api_dashboard():
         "SELECT cv.anio, COUNT(DISTINCT p.id) as cnt "
         + BASE_FROM.format(fts=fts_clause)
         + f" WHERE {evol_where} GROUP BY cv.anio ORDER BY cv.anio",
-        fts_params + params,
+        fts_params + evol_params,
     )
 
     # 2. Monto por año (evolución)
@@ -274,7 +275,7 @@ def api_dashboard():
         "SELECT cv.anio, COALESCE(SUM(p.monto_otorgado),0) as total "
         + BASE_FROM.format(fts=fts_clause)
         + f" WHERE {evol_where} GROUP BY cv.anio ORDER BY cv.anio",
-        fts_params + params,
+        fts_params + evol_params,
     )
 
     # 3. Top modalidades
@@ -362,7 +363,7 @@ def api_dashboard():
         + BASE_FROM.format(fts=fts_clause)
         + f" WHERE {evol_where} "
         "GROUP BY cv.anio, lc.codigo ORDER BY cv.anio, lc.codigo",
-        fts_params + params,
+        fts_params + evol_params,
     )
 
     # 10. Línea resumen
