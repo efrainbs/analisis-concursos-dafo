@@ -501,6 +501,28 @@ def api_search():
         fts_params + params + [per_page, offset],
     )
 
+    # Batch-fetch events for all project IDs
+    proj_ids = [r["id"] for r in rows]
+    eventos_by_proj = {}
+    if proj_ids:
+        placeholders = ",".join("?" for _ in proj_ids)
+        eventos_raw = query(
+            "SELECT pe.proyecto_id, e.nombre, e.pais "
+            "FROM proyecto_evento pe "
+            "JOIN evento_internacional e ON pe.evento_internacional_id = e.id "
+            f"WHERE pe.proyecto_id IN ({placeholders}) "
+            "ORDER BY e.nombre",
+            proj_ids,
+        )
+        for ev in eventos_raw:
+            pid = ev["proyecto_id"]
+            if pid not in eventos_by_proj:
+                eventos_by_proj[pid] = []
+            label = ev["nombre"]
+            if ev["pais"]:
+                label += f" ({ev['pais']})"
+            eventos_by_proj[pid].append(label)
+
     lineas_rows = query("SELECT codigo, nombre_canonico FROM linea_concursable ORDER BY codigo")
     lineas_dict = {r["codigo"]: r["nombre_canonico"] for r in lineas_rows}
 
@@ -583,6 +605,7 @@ def api_search():
             "region": html.escape(region_resolved or region_raw or "—"),
             "modalidad": "-" if r.get("modalidad") and r.get("modalidad") == r.get("concurso_nombre") else html.escape(r.get("modalidad") or "—"),
             "integrantes": integrantes,
+            "eventos": eventos_by_proj.get(r["id"], []),
             "jurados": jurados_by_ca.get(r["concurso_anual_id"], []),
             "resolucion": resolucion,
             "pdf_url": pdf_url,

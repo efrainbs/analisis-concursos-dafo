@@ -565,6 +565,9 @@ function openModal(idx) {
         + '<p><strong>Modalidad:</strong> ' + escHtml(r.modalidad) + '</p>'
         + '<p><strong>Categoría:</strong> ' + escHtml(r.obra_tipo_label) + '</p>'
         + '<p><strong>Monto:</strong> ' + r.monto + '</p>';
+    if (r.eventos && r.eventos.length) {
+        infoHtml += '<p><strong>Evento(s):</strong> ' + r.eventos.map(function(e) { return escHtml(e); }).join('; ') + '</p>';
+    }
     document.getElementById('modal-info').innerHTML = infoHtml;
 
     var intDiv = document.getElementById('modal-integrantes');
