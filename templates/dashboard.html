@@ -229,6 +229,14 @@ input, select, textarea, button, .btn { border-radius: 4px; }
                     <button id="ctrl-chart-bar" class="btn" onclick="setChartType('bar')" style="padding:0.4rem 1rem;font-size:14px;font-weight:600;flex:1;">Barra</button>
                 </div>
             </div>
+            <div>
+                <p style="font-size:13px;color:var(--neutral-60);margin:0 0 0.3rem 0;font-weight:600;">Región evolución</p>
+                <div style="display:flex;gap:0.25rem;">
+                    <button id="ctrl-region-todo" class="btn btn-primary" onclick="setRegionEvol('')" style="padding:0.4rem 1rem;font-size:14px;font-weight:600;flex:1;">Todo</button>
+                    <button id="ctrl-region-lima" class="btn" onclick="setRegionEvol('LIMA')" style="padding:0.4rem 1rem;font-size:14px;font-weight:600;flex:1;">Lima</button>
+                    <button id="ctrl-region-nolima" class="btn" onclick="setRegionEvol('NO LIMA')" style="padding:0.4rem 1rem;font-size:14px;font-weight:600;flex:1;">Regiones</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -326,6 +334,7 @@ input, select, textarea, button, .btn { border-radius: 4px; }
 <script>
 var ACTIVE_METRIC = 'cnt';
 var ACTIVE_CHART_TYPE = 'line';
+var ACTIVE_REGION_EVOL = '';
 var LINEAS_DICT = {{ lineas_dict|tojson }};
 var CHARTS = {};
 
@@ -355,6 +364,20 @@ function setChartType(t) {
     ACTIVE_CHART_TYPE = t;
     document.getElementById('ctrl-chart-line').className = t === 'line' ? 'btn btn-primary' : 'btn';
     document.getElementById('ctrl-chart-bar').className = t === 'bar' ? 'btn btn-primary' : 'btn';
+    Object.values(CHARTS).forEach(function(c) { if (c) c.destroy(); });
+    CHARTS = {};
+    refreshDashboard();
+}
+
+function setRegionEvol(v) {
+    ACTIVE_REGION_EVOL = v;
+    ['todo','lima','nolima'].forEach(function(k) {
+        var el = document.getElementById('ctrl-region-' + k);
+        if (el) el.className = 'btn';
+    });
+    var map = {'': 'todo', 'LIMA': 'lima', 'NO LIMA': 'nolima'};
+    var active = document.getElementById('ctrl-region-' + map[v]);
+    if (active) active.className = 'btn btn-primary';
     Object.values(CHARTS).forEach(function(c) { if (c) c.destroy(); });
     CHARTS = {};
     refreshDashboard();
@@ -428,7 +451,8 @@ function getFilters() {
     return {
         yf: mv('f-yf'), yt: mv('f-yt'),
         la: ma('f-la'), rf: ma('f-rf'), mf: ma('f-mf'),
-        tp: mv('f-tp'), mm: mv('f-mm'), mmn: mv('f-mmn')
+        tp: mv('f-tp'), mm: mv('f-mm'), mmn: mv('f-mmn'),
+        rf_evol: ACTIVE_REGION_EVOL
     };
 }
 
@@ -499,6 +523,7 @@ function refreshDashboard() {
     if (f.tp) params.set('tp', f.tp);
     if (f.mm && f.mm != '999999999') params.set('mm', f.mm);
     if (f.mmn && f.mmn != '0') params.set('mmn', f.mmn);
+    if (f.rf_evol) params.set('rf_evol', f.rf_evol);
     params.set('metric', ACTIVE_METRIC);
 
     fetch('/api/dashboard?' + params.toString())
@@ -522,6 +547,8 @@ function refreshDashboard() {
         var evolData = d.linea_evolucion || [];
         var allAnios = [...new Set(evolData.map(function(x) { return x.anio; }))].sort();
         var evolTitle = metric === 'cnt' ? 'Evolución — Cantidad de proyectos' : 'Evolución — Monto total (S/)';
+        if (ACTIVE_REGION_EVOL === 'LIMA') evolTitle += ' — Lima';
+        else if (ACTIVE_REGION_EVOL === 'NO LIMA') evolTitle += ' — Regiones fuera de Lima';
         document.getElementById('evol-title').textContent = evolTitle;
 
         if (chartType === 'bar') {
