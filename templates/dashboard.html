@@ -605,8 +605,10 @@ function refreshDashboard() {
         var evolData = d.linea_evolucion || [];
         var allAnios = [...new Set(evolData.map(function(x) { return x.anio; }))].sort();
         var evolTitle = metric === 'cnt' ? 'Evolución — Cantidad de proyectos' : 'Evolución — Monto total (S/)';
-        if (ACTIVE_REGION_EVOL === 'LIMA') evolTitle += ' — Lima';
-        else if (ACTIVE_REGION_EVOL === 'NO LIMA') evolTitle += ' — Regiones fuera de Lima';
+        var selRegions = getSelectedRegions();
+        if (selRegions.length && selRegions.length < document.querySelectorAll('#region-dropdown-menu input.region-cb').length) {
+            evolTitle += ' — ' + selRegions.join(', ');
+        }
         document.getElementById('evol-title').textContent = evolTitle;
 
         if (chartType === 'bar') {
