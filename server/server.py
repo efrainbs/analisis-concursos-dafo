@@ -476,7 +476,7 @@ def api_search():
         fts_params + params,
     )["c"]
 
-    per_page = 25
+    per_page = 50
     total_pages = max(1, (total + per_page - 1) // per_page)
     if page > total_pages:
         page = 1
