@@ -541,12 +541,25 @@ def api_search():
         for j in jurados_raw:
             ca_id = j["concurso_anual_id"]
             if ca_id not in jurados_by_ca:
-                jurados_by_ca[ca_id] = []
+                jurados_by_ca[ca_id] = {}
             if j["tipo"] == "juridica":
                 name = j["razon_social"] or "—"
             else:
                 name = f"{j['nombres'] or ''} {j['apellidos'] or ''}".strip() or "—"
-            jurados_by_ca[ca_id].append(f"{name} ({j['cargo'] or '—'})")
+            cargo = j["cargo"] or "—"
+            if name not in jurados_by_ca[ca_id]:
+                jurados_by_ca[ca_id][name] = []
+            if cargo not in jurados_by_ca[ca_id][name]:
+                jurados_by_ca[ca_id][name].append(cargo)
+        # Flatten to list of "name (role1, role2)" strings
+        for ca_id in jurados_by_ca:
+            flat = []
+            for name, cargos in jurados_by_ca[ca_id].items():
+                if len(cargos) == 1:
+                    flat.append(f"{name} ({cargos[0]})")
+                else:
+                    flat.append(f"{name} ({', '.join(cargos)})")
+            jurados_by_ca[ca_id] = flat
 
     results = []
     for r in rows:
