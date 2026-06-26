@@ -191,15 +191,20 @@ button, .btn, .btn-primary { border-radius: 4px; }
 
 /* MODAL */
 .modal-overlay {
-  display: none;
   position: fixed;
   inset: 0;
   z-index: 200;
-  background: rgba(0,0,0,.5);
+  background: rgba(0,0,0,0);
   align-items: center;
   justify-content: center;
+  display: flex;
+  visibility: hidden;
+  transition: background 0.25s ease, visibility 0.25s ease;
 }
-.modal-overlay.open { display: flex; }
+.modal-overlay.open {
+  background: rgba(0,0,0,.5);
+  visibility: visible;
+}
 .modal {
   background: var(--neutral-0);
   color: var(--neutral-100);
@@ -211,6 +216,13 @@ button, .btn, .btn-primary { border-radius: 4px; }
   padding: 1.5rem;
   box-shadow: 0 8px 32px rgba(0,0,0,.3);
   position: relative;
+  transform: scale(0.92) translateY(12px);
+  opacity: 0;
+  transition: transform 0.25s ease, opacity 0.25s ease;
+}
+.modal-overlay.open .modal {
+  transform: scale(1) translateY(0);
+  opacity: 1;
 }
 .modal-close {
   position: absolute;
