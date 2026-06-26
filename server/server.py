@@ -23,7 +23,9 @@ OBRA_TIPO_LABELS = {
     "audiovisual": "Obra audiovisual", "investigacion": "Investigación",
     "formacion": "Formación", "exhibicion": "Exhibición",
     "preservacion": "Preservación", "promocion": "Promoción",
+    "promocion_internacional": "Promoción",
     "gestion": "Gestión", "trayectoria": "Trayectoria",
+    "distribucion": "Distribución",
 }
 app = Flask(__name__, template_folder="../templates")
 app.config["TEMPLATES_AUTO_RELOAD"] = True
