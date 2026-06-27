@@ -772,6 +772,92 @@ def mapa():
     )
 
 
+# ── GRAPH API ──────────────────────────────────────────────────────────
+@app.route("/api/graph")
+def api_graph():
+    limit = min(int(request.args.get("limit", 200)), 500)
+    rows = query("""
+        SELECT p.id, ob.titulo, p.monto_otorgado as monto, cv.anio,
+               lc.codigo as linea_codigo, lc.nombre_canonico as linea_nombre,
+               pe.id as persona_id, pe.razon_social, pe.nombres, pe.apellidos,
+               pe.tipo as tipo_per, pe.region,
+               ob.tipo as obra_tipo
+        FROM proyecto p
+        JOIN concurso_anual ca ON p.concurso_anual_id = ca.id
+        JOIN linea_concursable lc ON ca.linea_concursable_id = lc.id
+        JOIN convocatoria cv ON ca.convocatoria_id = cv.id
+        LEFT JOIN obra ob ON p.obra_id = ob.id
+        LEFT JOIN persona pe ON p.persona_beneficiaria_id = pe.id
+        WHERE p.estado = 'beneficiario' AND cv.anio > 0
+        ORDER BY cv.anio DESC, p.monto_otorgado DESC
+        LIMIT ?
+    """, [limit])
+
+    nodes_map = {}
+    edges = []
+    node_id = 0
+
+    def get_or_create(key, label, group, meta=None):
+        nonlocal node_id
+        if key not in nodes_map:
+            node_id += 1
+            n = {"id": node_id, "label": label, "group": group, "key": key}
+            if meta:
+                n.update(meta)
+            nodes_map[key] = n
+        return nodes_map[key]["id"]
+
+    for r in rows:
+        proj_key = f"proj_{r['id']}"
+        proj_label = r["titulo"] or "SIN TITULO"
+        proj_id = get_or_create(proj_key, proj_label[:60], "proyecto",
+                                {"monto": r["monto"] or 0, "anio": r["anio"]})
+
+        if r["tipo_per"] == "juridica":
+            person_key = f"per_{r['persona_id']}"
+            person_label = r["razon_social"] or "—"
+        else:
+            person_key = f"per_{r['persona_id']}"
+            person_label = f"{r['nombres'] or ''} {r['apellidos'] or ''}".strip() or "—"
+        if person_label and person_label != "—":
+            person_id = get_or_create(person_key, person_label[:50], "persona",
+                                      {"region": r["region"] or ""})
+            edges.append({"source": proj_id, "target": person_id, "type": "beneficia"})
+
+        if r["region"]:
+            region_key = f"reg_{r['region'].upper()}"
+            region_id = get_or_create(region_key, r["region"].upper(), "region")
+            edges.append({"source": proj_id, "target": region_id, "type": "ubicado_en"})
+
+        if r["linea_codigo"]:
+            linea_key = f"lin_{r['linea_codigo']}"
+            linea_id = get_or_create(linea_key, r["linea_nombre"] or r["linea_codigo"], "linea")
+            edges.append({"source": proj_id, "target": linea_id, "type": "pertenece_a"})
+
+    nodes = list(nodes_map.values())
+    return jsonify({"nodes": nodes, "edges": edges})
+
+
+# ── GRAPH PAGE ─────────────────────────────────────────────────────────
+@app.route("/graph")
+def graph():
+    anios_list = [r["anio"] for r in query("SELECT anio FROM convocatoria WHERE anio > 0 ORDER BY anio")]
+    lineas_rows = query("SELECT codigo, nombre_canonico FROM linea_concursable ORDER BY codigo")
+    lineas_list = [r["codigo"] for r in lineas_rows]
+    lineas_dict = {r["codigo"]: r["nombre_canonico"] for r in lineas_rows}
+    total_db = query_one("SELECT COUNT(*) as c FROM proyecto")["c"]
+    monto_sum = query_one("SELECT SUM(monto_otorgado) as s FROM proyecto")["s"]
+    monto_db = f"S/ {monto_sum:,.2f}"
+
+    return render_template(
+        "graph.html",
+        lineas=lineas_list,
+        lineas_dict=lineas_dict,
+        total_db=total_db,
+        monto_db=monto_db,
+    )
+
+
 # ── TIMELINE PAGE ──────────────────────────────────────────────────────
 @app.route("/timeline")
 def timeline():
