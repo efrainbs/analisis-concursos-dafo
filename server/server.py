@@ -834,7 +834,7 @@ def _build_graph_nodes(rows, allowed_groups):
 
 @app.route("/api/graph")
 def api_graph():
-    mode = request.args.get("mode", "overview")
+    mode = request.args.get("mode", "all")
 
     if mode == "overview":
         limit = min(int(request.args.get("limit", 100)), 300)
