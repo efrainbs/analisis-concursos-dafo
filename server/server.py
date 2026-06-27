@@ -772,5 +772,57 @@ def mapa():
     )
 
 
+# ── TIMELINE PAGE ──────────────────────────────────────────────────────
+@app.route("/timeline")
+def timeline():
+    anios_list = [r["anio"] for r in query("SELECT anio FROM convocatoria WHERE anio > 0 ORDER BY anio")]
+    lineas_rows = query("SELECT codigo, nombre_canonico FROM linea_concursable ORDER BY codigo")
+    lineas_list = [r["codigo"] for r in lineas_rows]
+    lineas_dict = {r["codigo"]: r["nombre_canonico"] for r in lineas_rows}
+    modalidad_list = [r["nombre"] for r in query("SELECT DISTINCT nombre FROM modalidad WHERE nombre != '' ORDER BY nombre")]
+    obra_tipo_list = [r["tipo"] for r in query("SELECT DISTINCT tipo FROM obra WHERE tipo IS NOT NULL AND tipo != '' ORDER BY tipo")]
+    total_db = query_one("SELECT COUNT(*) as c FROM proyecto")["c"]
+    monto_sum = query_one("SELECT SUM(monto_otorgado) as s FROM proyecto")["s"]
+    monto_db = f"S/ {monto_sum:,.2f}"
+
+    return render_template(
+        "timeline.html",
+        anios=anios_list,
+        lineas=lineas_list,
+        lineas_dict=lineas_dict,
+        modalidades=modalidad_list,
+        obra_tipos=obra_tipo_list,
+        obra_tipo_labels=OBRA_TIPO_LABELS,
+        total_db=total_db,
+        monto_db=monto_db,
+    )
+
+
+# ── TIMELINE API ───────────────────────────────────────────────────────
+@app.route("/api/timeline")
+def api_timeline():
+    rows = query("""
+        SELECT cv.anio, p.id, ob.titulo, lc.codigo as linea_codigo,
+               lc.nombre_canonico as linea_nombre, p.monto_otorgado as monto,
+               pe.region, pe.tipo as tipo_per, pe.razon_social,
+               pe.nombres, pe.apellidos, ob.tipo as obra_tipo
+        FROM proyecto p
+        JOIN concurso_anual ca ON p.concurso_anual_id = ca.id
+        JOIN linea_concursable lc ON ca.linea_concursable_id = lc.id
+        JOIN convocatoria cv ON ca.convocatoria_id = cv.id
+        LEFT JOIN obra ob ON p.obra_id = ob.id
+        LEFT JOIN persona pe ON p.persona_beneficiaria_id = pe.id
+        WHERE p.estado = 'beneficiario'
+        ORDER BY cv.anio DESC, lc.codigo, ob.titulo
+    """)
+    for r in rows:
+        if r["tipo_per"] == "juridica":
+            r["persona"] = r["razon_social"] or "—"
+        else:
+            r["persona"] = f"{r['nombres'] or ''} {r['apellidos'] or ''}".strip() or "—"
+        r["categoria"] = OBRA_TIPO_LABELS.get(r["obra_tipo"], r["obra_tipo"] or "—")
+    return jsonify(rows)
+
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8501, debug=False)

@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Timeline — Mapa de proyectos audiovisuales</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+<script>
+(function() {
+  var t = localStorage.getItem('dafo-theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+<style>
+:root {
+  --neutral-100: #0D1B2A; --neutral-80: #384450; --neutral-60: #777F87;
+  --neutral-40: #E1E3E5; --neutral-30: #F0F1F2; --neutral-20: #FAFBFB;
+  --neutral-0: #FFF; --primary: #E80247;
+  --footer-bg: #0D1B2A; --footer-border: #2E3A47;
+  --body-font: 'Work Sans', sans-serif; --mono-font: 'IBM Plex Mono', monospace;
+}
+[data-theme="dark"] {
+  --neutral-100: #FFF; --neutral-80: #BBBFC3; --neutral-60: #92989F;
+  --neutral-40: #2E3A47; --neutral-30: #1D2A38; --neutral-20: #152231;
+  --neutral-0: #0D1B2A; --primary: #FF4775;
+  --footer-bg: #0E1D2E; --footer-border: #1D2A38;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: var(--body-font); background: var(--neutral-0); color: var(--neutral-100); -webkit-font-smoothing: antialiased; font-size: 100%; font-weight: 400; line-height: 1.5; overflow-x: hidden; }
+a { color: inherit; text-decoration: none; }
+.wrap { max-width: 90vw; margin: 0 auto; padding: 0 0.5rem; }
+.hidden { display: none !important; }
+.c-header { position: sticky; top: 0; z-index: 100; background: var(--neutral-0); }
+.c-header::after { content: ""; display: block; position: absolute; left: 0; right: 0; bottom: 0; height: 24px; background: linear-gradient(to bottom, var(--neutral-0), transparent); pointer-events: none; transform: translateY(100%); }
+.c-header__content { max-width: 90vw; margin: 0 auto; padding: 0 0.5rem; display: flex; align-items: center; justify-content: space-between; height: 50px; }
+.c-header__left { display: flex; align-items: center; gap: 2.5rem; }
+.c-main-logo { display: flex; align-items: center; }
+.c-main-logo svg { height: 28px; width: auto; }
+.c-header__right { display: flex; align-items: center; gap: 1rem; font-size: 14px; color: var(--neutral-60); }
+.c-header__nav { display: flex; gap: 1.5rem; font-size: 14px; }
+.c-header__nav a { color: var(--neutral-60); transition: color 0.15s; }
+.c-header__nav a:hover, .c-header__nav a.active { color: var(--neutral-100); font-weight: 600; }
+.footer { margin-top: 3rem; background: var(--footer-bg); color: var(--neutral-60); font-size: 14px; border-top: 1px solid var(--footer-border); }
+.footer-grid { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 1.5rem; padding: 1.5rem 0; }
+.footer h4 { color: var(--neutral-0); font-size: 21px; font-weight: 400; margin: 0 0 0.3rem 0; letter-spacing: -0.01em; }
+.footer h5 { color: var(--neutral-40); font-size: 14px; font-weight: 600; margin: 0 0 0.3rem 0; text-transform: uppercase; letter-spacing: 0.04em; }
+.footer p { margin: 0.1rem 0; }
+.footer a { color: var(--neutral-60); transition: color 0.15s; }
+.footer a:hover { color: var(--neutral-0); }
+.footer .dim { opacity: 0.5; }
+.footer-bottom { border-top: 1px solid var(--footer-border); padding: 0.8rem 0; text-align: center; color: var(--neutral-60); font-size: 14px; }
+
+/* TIMELINE */
+.timeline-header { margin: 1.5rem 0 0.5rem 0; }
+.timeline-header h1 { font-size: 48px; font-weight: 300; letter-spacing: -0.02em; }
+.timeline-header p { color: var(--neutral-60); font-size: 18px; margin-top: 0.3rem; }
+
+.timeline-rail { position: relative; padding-left: 100px; }
+.timeline-rail::before { content: ""; position: absolute; left: 46px; top: 0; bottom: 0; width: 2px; background: var(--neutral-40); }
+
+.year-block { position: relative; margin-bottom: 2.5rem; }
+.year-marker { position: absolute; left: -100px; top: 0; width: 92px; text-align: right; padding-right: 12px; }
+.year-marker .year-num { font-size: 32px; font-weight: 700; color: var(--neutral-100); line-height: 1; }
+.year-marker .year-dot { position: absolute; right: -5px; top: 10px; width: 12px; height: 12px; border-radius: 50%; background: var(--primary); border: 2px solid var(--neutral-0); }
+.year-marker .year-count { font-size: 13px; color: var(--neutral-60); margin-top: 0.2rem; }
+
+.year-projects { display: flex; flex-direction: column; gap: 0.5rem; }
+.project-card { border: 1px solid var(--neutral-40); border-radius: 6px; padding: 0.6rem 0.8rem; cursor: pointer; transition: all 0.15s; background: var(--neutral-0); }
+.project-card:hover { border-color: var(--neutral-60); box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+.project-card .card-header { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+.project-card .card-title { font-weight: 600; font-size: 16px; flex: 1; min-width: 0; overflow-wrap: break-word; word-break: break-word; }
+.project-card .card-linea { font-size: 11px; font-family: var(--mono-font); padding: 0.15rem 0.4rem; border-radius: 3px; background: var(--neutral-20); color: var(--neutral-60); border: 1px solid var(--neutral-40); white-space: nowrap; }
+.project-card .card-monto { font-size: 13px; font-family: var(--mono-font); color: var(--primary); font-weight: 600; white-space: nowrap; }
+.project-card .card-toggle { font-size: 12px; color: var(--neutral-60); cursor: pointer; background: none; border: 1px solid var(--neutral-40); border-radius: 3px; padding: 0.1rem 0.3rem; font-family: var(--mono-font); transition: all 0.15s; flex-shrink: 0; }
+.project-card .card-toggle:hover { color: var(--neutral-100); border-color: var(--neutral-80); }
+
+.project-card .card-details { max-height: 0; overflow: hidden; transition: max-height 0.35s ease, opacity 0.35s ease, padding 0.35s ease; opacity: 0; padding: 0; }
+.project-card.open .card-details { max-height: 200px; opacity: 1; padding: 0.5rem 0 0 0; }
+.card-details p { margin: 0.1rem 0; font-size: 14px; color: var(--neutral-80); line-height: 1.6; }
+.card-details strong { color: var(--neutral-100); font-weight: 600; }
+.card-details .detail-grid { display: grid; grid-template-columns: auto 1fr; gap: 0.15rem 0.8rem; }
+.card-details .detail-grid dt { color: var(--neutral-60); font-size: 13px; }
+.card-details .detail-grid dd { font-size: 14px; color: var(--neutral-80); }
+
+.loading { text-align: center; padding: 2rem; color: var(--neutral-60); font-size: 18px; }
+
+/* filter bar */
+.filter-bar { display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; margin: 0.5rem 0 1.5rem 0; }
+.filter-bar label { font-size: 14px; color: var(--neutral-60); }
+.filter-bar select { border: 1px solid var(--neutral-40); padding: 0.35rem 0.6rem; font-size: 14px; font-family: var(--mono-font); background: var(--neutral-0); outline: none; cursor: pointer; color: var(--neutral-100); border-radius: 4px; }
+</style>
+</head>
+<body>
+
+<header class="c-header">
+<div class="c-header__content">
+    <div class="c-header__left">
+        <div class="c-main-logo">
+            <a href="/">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 40" fill="none">
+                    <text x="0" y="30" font-family="'Work Sans',sans-serif" font-weight="700" font-size="20" fill="currentColor">Mapa de proyectos audiovisuales</text>
+                </svg>
+            </a>
+        </div>
+        <nav class="c-header__nav">
+            <a href="/">Proyectos</a>
+            <a href="/timeline" class="active">Timeline</a>
+            <a href="/dashboard">Dashboard</a>
+            <a href="/mapa">Mapa</a>
+        </nav>
+    </div>
+    <div class="c-header__right">
+        <button type="button" class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle dark mode">
+            <i class="fa-regular fa-sun icon-sun"></i>
+            <i class="fa-regular fa-moon icon-moon"></i>
+        </button>
+    </div>
+</div>
+</header>
+
+<div class="wrap">
+
+<div class="timeline-header">
+    <h1>Línea de tiempo</h1>
+    <p>Explora los proyectos beneficiarios organizados por año de convocatoria.</p>
+</div>
+
+<div class="filter-bar">
+    <label>Estímulo</label>
+    <select id="f-la" onchange="renderTimeline()">
+        <option value="">Todos</option>
+        {% for l in lineas %}
+        <option value="{{ l }}">{{ lineas_dict.get(l, l) }}</option>
+        {% endfor %}
+    </select>
+    <label>Categoría</label>
+    <select id="f-cat" onchange="renderTimeline()">
+        <option value="">Todas</option>
+        {% for t in obra_tipos %}
+        <option value="{{ t }}">{{ obra_tipo_labels.get(t, t) }}</option>
+        {% endfor %}
+    </select>
+</div>
+
+<div class="timeline-rail" id="timeline-rail">
+</div>
+
+</div>
+
+<div class="footer">
+<div class="wrap">
+    <div class="footer-grid">
+        <div>
+            <h4>Mapa de proyectos audiovisuales</h4>
+            <p>Estímulos Económicos del Ministerio</p>
+            <p>de Cultura del Perú</p>
+            <p class="dim">Solo lectura</p>
+        </div>
+        <div>
+            <h5>Explore the website</h5>
+            <p><a href="/">Proyectos</a> · <a href="/timeline">Timeline</a> · <a href="/dashboard">Dashboard</a> · <a href="/mapa">Mapa</a></p>
+        </div>
+        <div>
+            <h5>Database</h5>
+            <p>{{ total_db }} proyectos</p>
+            <p>{{ monto_db }} otorgados</p>
+            <p class="dim">SQLite · 14 tablas</p>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        Powered by Flask · Datos DAFO
+    </div>
+</div>
+</div>
+
+<script>
+function toggleTheme() {
+    var cur = document.documentElement.getAttribute('data-theme');
+    var next = cur === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('dafo-theme', next);
+}
+
+var allData = [];
+
+function fmtSoles(v) {
+    if (v >= 1000000) return 'S/ ' + (v / 1000000).toFixed(1) + 'M';
+    if (v >= 1000) return 'S/ ' + (v / 1000).toFixed(1) + 'K';
+    return 'S/ ' + v.toFixed(0);
+}
+
+function escHtml(s) {
+    if (!s) return '';
+    var d = document.createElement('div');
+    d.appendChild(document.createTextNode(s));
+    return d.innerHTML;
+}
+
+function renderTimeline() {
+    var la = document.getElementById('f-la').value;
+    var cat = document.getElementById('f-cat').value;
+    var filtered = allData;
+    if (la) filtered = filtered.filter(function(x) { return x.linea_codigo === la; });
+    if (cat) filtered = filtered.filter(function(x) { return x.obra_tipo === cat; });
+
+    var byYear = {};
+    filtered.forEach(function(x) {
+        if (!byYear[x.anio]) byYear[x.anio] = [];
+        byYear[x.anio].push(x);
+    });
+    var years = Object.keys(byYear).sort(function(a,b) { return b - a; });
+
+    var html = '';
+    years.forEach(function(anio) {
+        var items = byYear[anio];
+        html += '<div class="year-block">'
+            + '<div class="year-marker">'
+            + '<div class="year-num">' + anio + '</div>'
+            + '<div class="year-dot"></div>'
+            + '<div class="year-count">' + items.length + ' proyecto' + (items.length !== 1 ? 's' : '') + '</div>'
+            + '</div>'
+            + '<div class="year-projects">';
+        items.forEach(function(p, idx) {
+            html += '<div class="project-card" onclick="toggleCard(this)">'
+                + '<div class="card-header">'
+                + '<span class="card-title">' + escHtml(p.titulo) + '</span>'
+                + '<span class="card-linea">' + escHtml(p.linea_codigo) + '</span>'
+                + '<span class="card-monto">' + fmtSoles(p.monto) + '</span>'
+                + '<span class="card-toggle">[+]</span>'
+                + '</div>'
+                + '<div class="card-details">'
+                + '<div class="detail-grid">'
+                + '<dt>Persona</dt><dd>' + escHtml(p.persona) + '</dd>'
+                + '<dt>Región</dt><dd>' + escHtml(p.region || '—') + '</dd>'
+                + '<dt>Categoría</dt><dd>' + escHtml(p.categoria) + '</dd>'
+                + '<dt>Estímulo</dt><dd>' + escHtml(p.linea_nombre) + '</dd>'
+                + '</div>'
+                + '</div>'
+                + '</div>';
+        });
+        html += '</div></div>';
+    });
+
+    if (!years.length) {
+        html = '<div class="loading">Sin resultados</div>';
+    }
+    document.getElementById('timeline-rail').innerHTML = html;
+}
+
+function toggleCard(el) {
+    el.classList.toggle('open');
+    var toggle = el.querySelector('.card-toggle');
+    if (toggle) toggle.textContent = el.classList.contains('open') ? '[–]' : '[+]';
+}
+
+fetch('/api/timeline')
+.then(function(r) { return r.json(); })
+.then(function(d) {
+    allData = d;
+    renderTimeline();
+});
+</script>
+</body>
+</html>
