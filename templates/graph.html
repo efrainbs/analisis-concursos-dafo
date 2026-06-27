@@ -79,8 +79,8 @@ body { display: flex; flex-direction: column; }
 .graph-controls { position: absolute; top: 0.8rem; right: 0.8rem; display: flex; gap: 0.4rem; z-index: 10; }
 .graph-controls button { border: 1px solid var(--neutral-40); padding: 0.35rem 0.7rem; font-size: 13px; font-family: var(--mono-font); background: var(--neutral-0); cursor: pointer; color: var(--neutral-100); border-radius: 4px; transition: all 0.15s; }
 .graph-controls button:hover { background: var(--neutral-20); border-color: var(--neutral-60); }
-.graph-legend { display: flex; flex-direction: column; gap: 0.3rem; font-size: 11px; }
-.legend-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 0.3rem; }
+.graph-legend-overlay { position: absolute; bottom: 0.8rem; left: 0.8rem; display: flex; gap: 0.8rem; flex-wrap: wrap; z-index: 10; font-size: 12px; font-family: var(--mono-font); background: var(--neutral-0); padding: 0.4rem 0.8rem; border-radius: 6px; border: 1px solid var(--neutral-40); }
+.legend-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 0.3rem; }
 
 .node-label { font-size: 10px; font-family: var(--mono-font); pointer-events: none; }
 .focus-ring { animation: spin-dash 2.5s linear infinite; }
@@ -158,17 +158,17 @@ body { display: flex; flex-direction: column; }
     </div>
 
     <button onclick="loadGraph()">Actualizar</button>
-    <div class="graph-legend">
-        <span><span class="legend-dot" style="background:#FF9800;"></span>Estímulo</span>
-        <span><span class="legend-dot" style="background:#4CAF50;"></span>Región</span>
-        <span><span class="legend-dot" style="background:#E80247;"></span>Proyecto</span>
-        <span><span class="legend-dot" style="background:#2D7D9A;"></span>Persona</span>
-    </div>
     <div class="sidebar-tip">Hover sobre un nodo para ver conexiones</div>
 </aside>
 
 <div class="graph-container" id="graph-container">
     <svg id="graph-svg"></svg>
+    <div class="graph-legend-overlay">
+        <span><span class="legend-dot" style="background:#FF9800;"></span>Estímulo</span>
+        <span><span class="legend-dot" style="background:#4CAF50;"></span>Región</span>
+        <span><span class="legend-dot" style="background:#E80247;"></span>Proyecto</span>
+        <span><span class="legend-dot" style="background:#2D7D9A;"></span>Persona</span>
+    </div>
 </div>
 
 </div> <!-- /page-content -->
