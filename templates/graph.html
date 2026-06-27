@@ -298,19 +298,25 @@ function render() {
 
     node.on('mouseover', function(e, n) {
         highlight(n.id);
+        tooltip.classList.add('hidden');
+    }).on('mousemove', function(e) {
+        tooltip.classList.add('hidden');
+    }).on('mouseout', function() {
+        highlight(null);
+        tooltip.classList.add('hidden');
+    });
+
+    node.on('click', function(e, n) {
+        e.stopPropagation();
+        var rect = container.getBoundingClientRect();
+        tooltip.style.left = (e.clientX - rect.left + 14) + 'px';
+        tooltip.style.top = (e.clientY - rect.top - 8) + 'px';
         tooltip.innerHTML = '<strong>' + escHtml(n.label) + '</strong><br>'
             + 'Tipo: ' + n.group
             + (n.monto ? '<br>Monto: S/ ' + Number(n.monto).toLocaleString() : '')
             + (n.region ? '<br>Región: ' + escHtml(n.region) : '')
             + (n.anio ? '<br>Año: ' + n.anio : '');
         tooltip.classList.remove('hidden');
-    }).on('mousemove', function(e) {
-        var rect = container.getBoundingClientRect();
-        tooltip.style.left = (e.clientX - rect.left + 14) + 'px';
-        tooltip.style.top = (e.clientY - rect.top - 8) + 'px';
-    }).on('mouseout', function() {
-        highlight(null);
-        tooltip.classList.add('hidden');
     });
 
     node.on('dblclick', function(e, n) {
@@ -320,7 +326,7 @@ function render() {
         }
     });
 
-    svg.on('click', function() { highlight(null); });
+    svg.on('click', function() { highlight(null); tooltip.classList.add('hidden'); });
 
     // Tick
     simulation.on('tick', function() {
