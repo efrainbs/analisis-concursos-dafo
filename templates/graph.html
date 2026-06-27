@@ -83,7 +83,7 @@ body { display: flex; flex-direction: column; }
 .legend-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 0.3rem; }
 
 .node-label { font-size: 10px; font-family: var(--mono-font); pointer-events: none; }
-.focus-ring { animation: spin-dash 1s linear infinite; }
+.focus-ring { animation: spin-dash 2.5s linear infinite; }
 @keyframes spin-dash { to { stroke-dashoffset: -14; } }
 .tooltip { position: absolute; padding: 0.5rem 0.8rem; background: var(--neutral-0); border: 1px solid var(--neutral-40); border-radius: 6px; font-size: 13px; font-family: var(--body-font); pointer-events: none; box-shadow: 0 4px 12px rgba(0,0,0,0.1); z-index: 20; max-width: 280px; transition: opacity 0.15s; }
 .tooltip.hidden { opacity: 0; pointer-events: none; }
@@ -235,7 +235,7 @@ function initGraph() {
     linkGroup = g.append('g');
     nodeGroup = g.append('g');
     labelGroup = g.append('g');
-    focusRing = g.append('circle').attr('class', 'focus-ring').attr('fill', 'none').attr('stroke', 'var(--focus-ring)').attr('stroke-width', 2).attr('stroke-dasharray', '4,4').attr('opacity', 0).attr('pointer-events', 'none');
+    focusRing = g.append('circle').attr('class', 'focus-ring').attr('fill', 'none').attr('stroke', 'var(--focus-ring)').attr('stroke-width', 1).attr('stroke-dasharray', '3,4').attr('opacity', 0).attr('pointer-events', 'none');
 }
 
 function render() {
