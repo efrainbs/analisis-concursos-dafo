@@ -358,6 +358,10 @@ loadGraph();
 window.addEventListener('resize', function() {
     if (allNodes.length) render();
 });
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') tooltip.classList.add('hidden');
+});
 </script>
 </body>
 </html>
