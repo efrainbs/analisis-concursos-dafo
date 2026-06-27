@@ -59,9 +59,20 @@ html, body { height: 100%; margin: 0; }
 body { display: flex; flex-direction: column; }
 .c-header { flex-shrink: 0; }
 .page-wrap { flex: 1; min-height: 0; display: flex; flex-direction: column; }
-.page-content { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.page-content { flex: 1; min-height: 0; display: flex; flex-direction: row; }
 
-.graph-container { position: relative; flex: 1; min-height: 0; border: 1px solid var(--neutral-40); border-radius: 8px; overflow: hidden; background: var(--neutral-20); margin-bottom: 0; }
+.graph-sidebar { width: 220px; flex-shrink: 0; border-right: 1px solid var(--neutral-40); padding: 1rem; display: flex; flex-direction: column; gap: 1rem; overflow-y: auto; }
+.graph-sidebar label { font-size: 12px; font-weight: 600; color: var(--neutral-60); text-transform: uppercase; letter-spacing: 0.04em; }
+.graph-sidebar input[type="range"] { width: 100%; accent-color: var(--primary); }
+.graph-sidebar .limit-value { font-size: 14px; font-family: var(--mono-font); color: var(--neutral-100); }
+.graph-sidebar .filter-group { display: flex; flex-direction: column; gap: 0.4rem; }
+.graph-sidebar .filter-check { display: flex; align-items: center; gap: 0.5rem; font-size: 14px; cursor: pointer; }
+.graph-sidebar .filter-check input { accent-color: var(--primary); }
+.graph-sidebar .filter-check .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.graph-sidebar button { border: 1px solid var(--neutral-40); padding: 0.35rem 0.7rem; font-size: 13px; font-family: var(--mono-font); background: var(--neutral-0); cursor: pointer; color: var(--neutral-100); border-radius: 4px; transition: all 0.15s; }
+.graph-sidebar button:hover { background: var(--neutral-20); border-color: var(--neutral-60); }
+
+.graph-container { position: relative; flex: 1; min-height: 0; overflow: hidden; background: var(--neutral-20); }
 .graph-container svg { width: 100%; height: 100%; }
 .graph-controls { position: absolute; top: 0.8rem; right: 0.8rem; display: flex; gap: 0.4rem; z-index: 10; }
 .graph-controls button { border: 1px solid var(--neutral-40); padding: 0.35rem 0.7rem; font-size: 13px; font-family: var(--mono-font); background: var(--neutral-0); cursor: pointer; color: var(--neutral-100); border-radius: 4px; transition: all 0.15s; }
@@ -105,6 +116,24 @@ body { display: flex; flex-direction: column; }
 
 <div class="page-wrap">
 <div class="page-content">
+
+<aside class="graph-sidebar">
+    <div>
+        <label for="f-limit">Proyectos</label>
+        <input type="range" id="f-limit" min="20" max="500" value="200" step="10" oninput="this.nextElementSibling.textContent=this.value">
+        <span class="limit-value">200</span>
+    </div>
+
+    <div class="filter-group">
+        <label>Mostrar</label>
+        <label class="filter-check"><input type="checkbox" value="proyecto" checked><span class="dot" style="background:#E80247"></span>Proyecto</label>
+        <label class="filter-check"><input type="checkbox" value="persona" checked><span class="dot" style="background:#2D7D9A"></span>Persona</label>
+        <label class="filter-check"><input type="checkbox" value="region" checked><span class="dot" style="background:#4CAF50"></span>Región</label>
+        <label class="filter-check"><input type="checkbox" value="linea" checked><span class="dot" style="background:#FF9800"></span>Estímulo</label>
+    </div>
+
+    <button onclick="loadGraph()">Actualizar</button>
+</aside>
 
 <div class="graph-container" id="graph-container">
     <svg id="graph-svg"></svg>
@@ -185,11 +214,15 @@ function isDark() {
 }
 
 function loadGraph() {
-    var limit = 200;
+    var limit = document.getElementById('f-limit').value;
+    var groups = Array.from(document.querySelectorAll('.filter-check input:checked')).map(function(cb) { return cb.value; });
     selectedNode = null;
     svg.selectAll('*').remove();
 
-    fetch('/api/graph?limit=' + limit)
+    var params = 'limit=' + limit;
+    if (groups.length) params += '&groups=' + groups.join(',');
+
+    fetch('/api/graph?' + params)
     .then(function(r) { return r.json(); })
     .then(function(d) {
         var width = container.clientWidth;

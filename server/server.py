@@ -776,6 +776,8 @@ def mapa():
 @app.route("/api/graph")
 def api_graph():
     limit = min(int(request.args.get("limit", 200)), 500)
+    groups_filter = request.args.get("groups", "")
+    allowed = set(groups_filter.split(",")) if groups_filter else {"proyecto", "persona", "region", "linea"}
     rows = query("""
         SELECT p.id, ob.titulo, p.monto_otorgado as monto, cv.anio,
                lc.codigo as linea_codigo, lc.nombre_canonico as linea_nombre,
@@ -835,6 +837,17 @@ def api_graph():
             edges.append({"source": proj_id, "target": linea_id, "type": "pertenece_a"})
 
     nodes = list(nodes_map.values())
+    nodes = [n for n in nodes if n["group"] in allowed]
+    allowed_ids = {n["id"] for n in nodes}
+    edges = [e for e in edges if e["source"] in allowed_ids or e["target"] in allowed_ids]
+    # remap node ids after filtering
+    id_map = {}
+    for i, n in enumerate(nodes, 1):
+        id_map[n["id"]] = i
+        n["id"] = i
+    for e in edges:
+        e["source"] = id_map.get(e["source"], e["source"])
+        e["target"] = id_map.get(e["target"], e["target"])
     return jsonify({"nodes": nodes, "edges": edges})
 
 
