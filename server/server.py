@@ -773,28 +773,9 @@ def mapa():
 
 
 # ── GRAPH API ──────────────────────────────────────────────────────────
-@app.route("/api/graph")
-def api_graph():
-    limit = min(int(request.args.get("limit", 200)), 500)
-    groups_filter = request.args.get("groups", "")
-    allowed = set(groups_filter.split(",")) if groups_filter else {"proyecto", "persona", "region", "linea"}
-    rows = query("""
-        SELECT p.id, ob.titulo, p.monto_otorgado as monto, cv.anio,
-               lc.codigo as linea_codigo, lc.nombre_canonico as linea_nombre,
-               pe.id as persona_id, pe.razon_social, pe.nombres, pe.apellidos,
-               pe.tipo as tipo_per, pe.region,
-               ob.tipo as obra_tipo
-        FROM proyecto p
-        JOIN concurso_anual ca ON p.concurso_anual_id = ca.id
-        JOIN linea_concursable lc ON ca.linea_concursable_id = lc.id
-        JOIN convocatoria cv ON ca.convocatoria_id = cv.id
-        LEFT JOIN obra ob ON p.obra_id = ob.id
-        LEFT JOIN persona pe ON p.persona_beneficiaria_id = pe.id
-        WHERE p.estado = 'beneficiario' AND cv.anio > 0
-        ORDER BY cv.anio DESC, p.monto_otorgado DESC
-        LIMIT ?
-    """, [limit])
 
+def _build_graph_nodes(rows, allowed_groups):
+    """Build nodes and edges from project rows using get_or_create pattern."""
     nodes_map = {}
     edges = []
     node_id = 0
@@ -826,21 +807,21 @@ def api_graph():
                                       {"region": r["region"] or ""})
             edges.append({"source": proj_id, "target": person_id, "type": "beneficia"})
 
-        if r["region"]:
+        if r.get("region"):
             region_key = f"reg_{r['region'].upper()}"
             region_id = get_or_create(region_key, r["region"].upper(), "region")
             edges.append({"source": proj_id, "target": region_id, "type": "ubicado_en"})
 
-        if r["linea_codigo"]:
+        if r.get("linea_codigo"):
             linea_key = f"lin_{r['linea_codigo']}"
             linea_id = get_or_create(linea_key, r["linea_nombre"] or r["linea_codigo"], "linea")
             edges.append({"source": proj_id, "target": linea_id, "type": "pertenece_a"})
 
     nodes = list(nodes_map.values())
-    nodes = [n for n in nodes if n["group"] in allowed]
+    if allowed_groups:
+        nodes = [n for n in nodes if n["group"] in allowed_groups]
     allowed_ids = {n["id"] for n in nodes}
     edges = [e for e in edges if e["source"] in allowed_ids or e["target"] in allowed_ids]
-    # remap node ids after filtering
     id_map = {}
     for i, n in enumerate(nodes, 1):
         id_map[n["id"]] = i
@@ -848,6 +829,135 @@ def api_graph():
     for e in edges:
         e["source"] = id_map.get(e["source"], e["source"])
         e["target"] = id_map.get(e["target"], e["target"])
+    return nodes, edges
+
+
+@app.route("/api/graph")
+def api_graph():
+    mode = request.args.get("mode", "overview")
+
+    if mode == "overview":
+        limit = min(int(request.args.get("limit", 100)), 300)
+
+        linea_rows = query("""
+            SELECT DISTINCT lc.codigo, lc.nombre_canonico
+            FROM linea_concursable lc
+            WHERE EXISTS (
+                SELECT 1 FROM concurso_anual ca
+                JOIN proyecto p ON p.concurso_anual_id = ca.id
+                WHERE ca.linea_concursable_id = lc.id AND p.estado = 'beneficiario'
+            )
+            ORDER BY lc.codigo
+            LIMIT ?
+        """, [limit])
+
+        region_rows = query("""
+            SELECT DISTINCT pe.region
+            FROM persona pe
+            WHERE EXISTS (
+                SELECT 1 FROM proyecto p
+                WHERE p.persona_beneficiaria_id = pe.id AND p.estado = 'beneficiario'
+            )
+            AND pe.region IS NOT NULL AND pe.region != '' AND pe.region != 'SIN DATO'
+            ORDER BY pe.region
+            LIMIT ?
+        """, [limit])
+
+        nodes = []
+        node_id = 0
+        for r in linea_rows:
+            node_id += 1
+            nodes.append({"id": node_id, "key": f"lin_{r['codigo']}",
+                          "label": r["nombre_canonico"] or r["codigo"], "group": "linea"})
+        for r in region_rows:
+            node_id += 1
+            nodes.append({"id": node_id, "key": f"reg_{r['region'].upper()}",
+                          "label": r["region"].upper(), "group": "region"})
+
+        return jsonify({"nodes": nodes, "edges": []})
+
+    elif mode == "expand":
+        key = request.args.get("key", "")
+
+        if key.startswith("lin_"):
+            codigo = key[4:]
+            rows = query("""
+                SELECT p.id, ob.titulo, p.monto_otorgado as monto, cv.anio,
+                       lc.codigo as linea_codigo, lc.nombre_canonico as linea_nombre,
+                       pe.id as persona_id, pe.razon_social, pe.nombres, pe.apellidos,
+                       pe.tipo as tipo_per, pe.region
+                FROM proyecto p
+                JOIN concurso_anual ca ON p.concurso_anual_id = ca.id
+                JOIN linea_concursable lc ON ca.linea_concursable_id = lc.id
+                JOIN convocatoria cv ON ca.convocatoria_id = cv.id
+                LEFT JOIN obra ob ON p.obra_id = ob.id
+                LEFT JOIN persona pe ON p.persona_beneficiaria_id = pe.id
+                WHERE p.estado = 'beneficiario' AND lc.codigo = ?
+                ORDER BY cv.anio DESC, p.monto_otorgado DESC
+            """, [codigo])
+            nodes, edges = _build_graph_nodes(rows, None)
+
+        elif key.startswith("proj_"):
+            pid = int(key[5:])
+            rows = query("""
+                SELECT p.id, ob.titulo, p.monto_otorgado as monto, cv.anio,
+                       lc.codigo as linea_codigo, lc.nombre_canonico as linea_nombre,
+                       pe.id as persona_id, pe.razon_social, pe.nombres, pe.apellidos,
+                       pe.tipo as tipo_per, pe.region
+                FROM proyecto p
+                JOIN concurso_anual ca ON p.concurso_anual_id = ca.id
+                JOIN linea_concursable lc ON ca.linea_concursable_id = lc.id
+                JOIN convocatoria cv ON ca.convocatoria_id = cv.id
+                LEFT JOIN obra ob ON p.obra_id = ob.id
+                LEFT JOIN persona pe ON p.persona_beneficiaria_id = pe.id
+                WHERE p.estado = 'beneficiario' AND p.id = ?
+            """, [pid])
+            nodes, edges = _build_graph_nodes(rows, None)
+
+        elif key.startswith("reg_"):
+            region_name = key[4:]
+            rows = query("""
+                SELECT p.id, ob.titulo, p.monto_otorgado as monto, cv.anio,
+                       lc.codigo as linea_codigo, lc.nombre_canonico as linea_nombre,
+                       pe.id as persona_id, pe.razon_social, pe.nombres, pe.apellidos,
+                       pe.tipo as tipo_per, pe.region
+                FROM proyecto p
+                JOIN concurso_anual ca ON p.concurso_anual_id = ca.id
+                JOIN linea_concursable lc ON ca.linea_concursable_id = lc.id
+                JOIN convocatoria cv ON ca.convocatoria_id = cv.id
+                LEFT JOIN obra ob ON p.obra_id = ob.id
+                LEFT JOIN persona pe ON p.persona_beneficiaria_id = pe.id
+                WHERE p.estado = 'beneficiario' AND pe.region = ?
+                ORDER BY cv.anio DESC, p.monto_otorgado DESC
+            """, [region_name])
+            nodes, edges = _build_graph_nodes(rows, None)
+
+        else:
+            return jsonify({"nodes": [], "edges": []})
+
+        return jsonify({"nodes": nodes, "edges": edges})
+
+    # fallback: original all-at-once mode
+    limit = min(int(request.args.get("limit", 200)), 500)
+    groups_filter = request.args.get("groups", "")
+    allowed = set(groups_filter.split(",")) if groups_filter else {"proyecto", "persona", "region", "linea"}
+    rows = query("""
+        SELECT p.id, ob.titulo, p.monto_otorgado as monto, cv.anio,
+               lc.codigo as linea_codigo, lc.nombre_canonico as linea_nombre,
+               pe.id as persona_id, pe.razon_social, pe.nombres, pe.apellidos,
+               pe.tipo as tipo_per, pe.region,
+               ob.tipo as obra_tipo
+        FROM proyecto p
+        JOIN concurso_anual ca ON p.concurso_anual_id = ca.id
+        JOIN linea_concursable lc ON ca.linea_concursable_id = lc.id
+        JOIN convocatoria cv ON ca.convocatoria_id = cv.id
+        LEFT JOIN obra ob ON p.obra_id = ob.id
+        LEFT JOIN persona pe ON p.persona_beneficiaria_id = pe.id
+        WHERE p.estado = 'beneficiario' AND cv.anio > 0
+        ORDER BY cv.anio DESC, p.monto_otorgado DESC
+        LIMIT ?
+    """, [limit])
+    nodes, edges = _build_graph_nodes(rows, allowed)
     return jsonify({"nodes": nodes, "edges": edges})
 
 

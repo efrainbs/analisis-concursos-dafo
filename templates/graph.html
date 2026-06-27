@@ -65,12 +65,9 @@ body { display: flex; flex-direction: column; }
 .graph-sidebar label { font-size: 12px; font-weight: 600; color: var(--neutral-60); text-transform: uppercase; letter-spacing: 0.04em; }
 .graph-sidebar input[type="range"] { width: 100%; accent-color: var(--primary); }
 .graph-sidebar .limit-value { font-size: 14px; font-family: var(--mono-font); color: var(--neutral-100); }
-.graph-sidebar .filter-group { display: flex; flex-direction: column; gap: 0.4rem; }
-.graph-sidebar .filter-check { display: flex; align-items: center; gap: 0.5rem; font-size: 14px; cursor: pointer; }
-.graph-sidebar .filter-check input { accent-color: var(--primary); }
-.graph-sidebar .filter-check .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
 .graph-sidebar button { border: 1px solid var(--neutral-40); padding: 0.35rem 0.7rem; font-size: 13px; font-family: var(--mono-font); background: var(--neutral-0); cursor: pointer; color: var(--neutral-100); border-radius: 4px; transition: all 0.15s; }
 .graph-sidebar button:hover { background: var(--neutral-20); border-color: var(--neutral-60); }
+.sidebar-info { font-size: 12px; color: var(--neutral-60); line-height: 1.6; }
 
 .graph-container { position: relative; flex: 1; min-height: 0; overflow: hidden; background: var(--neutral-20); }
 .graph-container svg { width: 100%; height: 100%; }
@@ -119,20 +116,12 @@ body { display: flex; flex-direction: column; }
 
 <aside class="graph-sidebar">
     <div>
-        <label for="f-limit">Proyectos</label>
-        <input type="range" id="f-limit" min="20" max="500" value="200" step="10" oninput="this.nextElementSibling.textContent=this.value">
-        <span class="limit-value">200</span>
+        <label for="f-limit">Límite</label>
+        <input type="range" id="f-limit" min="20" max="300" value="100" step="10" oninput="document.getElementById('limit-display').textContent=this.value">
+        <span class="limit-value" id="limit-display">100</span>
     </div>
-
-    <div class="filter-group">
-        <label>Mostrar</label>
-        <label class="filter-check"><input type="checkbox" value="proyecto" checked><span class="dot" style="background:#E80247"></span>Proyecto</label>
-        <label class="filter-check"><input type="checkbox" value="persona" checked><span class="dot" style="background:#2D7D9A"></span>Persona</label>
-        <label class="filter-check"><input type="checkbox" value="region" checked><span class="dot" style="background:#4CAF50"></span>Región</label>
-        <label class="filter-check"><input type="checkbox" value="linea" checked><span class="dot" style="background:#FF9800"></span>Estímulo</label>
-    </div>
-
-    <button onclick="loadGraph()">Actualizar</button>
+    <button onclick="resetGraph()">Vista general</button>
+    <div class="sidebar-info" id="sidebar-info"></div>
 </aside>
 
 <div class="graph-container" id="graph-container">
@@ -194,177 +183,251 @@ function escHtml(s) {
 var svg = d3.select('#graph-svg');
 var tooltip = document.getElementById('tooltip');
 var container = document.getElementById('graph-container');
-var selectedNode = null;
+var sidebarInfo = document.getElementById('sidebar-info');
 
-var GROUP_COLORS = {
-    proyecto: '#E80247',
-    persona: '#2D7D9A',
-    region: '#4CAF50',
-    linea: '#FF9800'
-};
-var GROUP_SIZES = {
-    proyecto: 8,
-    persona: 6,
-    region: 10,
-    linea: 10
-};
+var GROUP_COLORS = { proyecto: '#E80247', persona: '#2D7D9A', region: '#4CAF50', linea: '#FF9800' };
+var GROUP_SIZES = { proyecto: 8, persona: 6, region: 12, linea: 14 };
+
+var allNodes = [];
+var allEdges = [];
+var g, simulation, linkGroup, nodeGroup, labelGroup;
+var level = 0; // 0=overview, 1=expanded, 2=detail
 
 function isDark() {
     return document.documentElement.getAttribute('data-theme') === 'dark';
 }
 
-function loadGraph() {
-    var limit = document.getElementById('f-limit').value;
-    var groups = Array.from(document.querySelectorAll('.filter-check input:checked')).map(function(cb) { return cb.value; });
-    selectedNode = null;
+function initSimulation() {
     svg.selectAll('*').remove();
+    g = svg.append('g');
+    var zoom = d3.zoom().scaleExtent([0.2, 6]).on('zoom', function(e) { g.attr('transform', e.transform); });
+    svg.call(zoom);
+    linkGroup = g.append('g');
+    nodeGroup = g.append('g');
+    labelGroup = g.append('g');
+    simulation = d3.forceSimulation()
+        .force('link', d3.forceLink().id(function(n) { return n.id; }).distance(80).strength(0.4))
+        .force('charge', d3.forceManyBody().strength(-200))
+        .force('center', d3.forceCenter(container.clientWidth / 2, container.clientHeight / 2))
+        .force('collision', d3.forceCollide().radius(function(n) { return GROUP_SIZES[n.group] + 6; }));
+}
 
-    var params = 'limit=' + limit;
-    if (groups.length) params += '&groups=' + groups.join(',');
+function render() {
+    var width = container.clientWidth;
+    var height = container.clientHeight;
+    simulation.force('center', d3.forceCenter(width / 2, height / 2));
 
-    fetch('/api/graph?' + params)
-    .then(function(r) { return r.json(); })
-    .then(function(d) {
-        var width = container.clientWidth;
-        var height = container.clientHeight;
+    // Bind links
+    var link = linkGroup.selectAll('line').data(allEdges, function(e) { return e.source + '-' + e.target; });
+    link.exit().remove();
+    var linkEnter = link.enter().append('line')
+        .attr('stroke', function() { return isDark() ? '#555' : '#CCC'; })
+        .attr('stroke-width', 0.8)
+        .attr('stroke-opacity', 0.3);
+    link = linkEnter.merge(link);
 
-        var simulation = d3.forceSimulation(d.nodes)
-            .force('link', d3.forceLink(d.edges).id(function(n) { return n.id; }).distance(80).strength(0.4))
-            .force('charge', d3.forceManyBody().strength(-180))
-            .force('center', d3.forceCenter(width / 2, height / 2))
-            .force('collision', d3.forceCollide().radius(function(n) { return GROUP_SIZES[n.group] + 4; }));
+    // Bind nodes
+    var node = nodeGroup.selectAll('circle').data(allNodes, function(n) { return n.key; });
+    node.exit().remove();
+    var nodeEnter = node.enter().append('circle')
+        .attr('r', function(n) { return GROUP_SIZES[n.group]; })
+        .attr('fill', function(n) { return GROUP_COLORS[n.group]; })
+        .attr('stroke', function() { return isDark() ? '#222' : '#FFF'; })
+        .attr('stroke-width', 1.5)
+        .attr('opacity', 0.85)
+        .attr('cursor', 'pointer')
+        .call(d3.drag()
+            .on('start', function(e, n) {
+                if (!e.active) simulation.alphaTarget(0.3).restart();
+                n.fx = n.x; n.fy = n.y;
+            })
+            .on('drag', function(e, n) { n.fx = e.x; n.fy = e.y; })
+            .on('end', function(e, n) {
+                if (!e.active) simulation.alphaTarget(0);
+                n.fx = null; n.fy = null;
+            })
+        );
+    node = nodeEnter.merge(node);
 
-        // Zoom & pan
-        var g = svg.append('g');
-        var zoom = d3.zoom()
-            .scaleExtent([0.2, 6])
-            .on('zoom', function(e) { g.attr('transform', e.transform); });
-        svg.call(zoom);
+    // Bind labels
+    var label = labelGroup.selectAll('text').data(allNodes, function(n) { return n.key; });
+    label.exit().remove();
+    var labelEnter = label.enter().append('text')
+        .text(function(n) { return n.label; })
+        .attr('class', 'node-label')
+        .attr('fill', function() { return isDark() ? '#999' : '#555'; })
+        .attr('dx', function(n) { return GROUP_SIZES[n.group] + 4; })
+        .attr('dy', 3)
+        .attr('cursor', 'pointer');
+    label = labelEnter.merge(label);
 
-        var link = g.append('g')
-            .selectAll('line')
-            .data(d.edges)
-            .enter().append('line')
-            .attr('stroke', function() { return isDark() ? '#444' : '#CCC'; })
-            .attr('stroke-width', 1)
-            .attr('stroke-opacity', 0.5);
-
-        var nodeGroup = g.append('g')
-            .selectAll('circle')
-            .data(d.nodes)
-            .enter().append('circle')
-            .attr('r', function(n) { return GROUP_SIZES[n.group]; })
-            .attr('fill', function(n) { return GROUP_COLORS[n.group]; })
-            .attr('stroke', function() { return isDark() ? '#222' : '#FFF'; })
-            .attr('stroke-width', 1.5)
-            .attr('opacity', 0.85)
-            .attr('cursor', 'pointer')
-            .call(d3.drag()
-                .on('start', function(e, n) {
-                    if (!e.active) simulation.alphaTarget(0.3).restart();
-                    n.fx = n.x; n.fy = n.y;
-                })
-                .on('drag', function(e, n) {
-                    n.fx = e.x; n.fy = e.y;
-                })
-                .on('end', function(e, n) {
-                    if (!e.active) simulation.alphaTarget(0);
-                    n.fx = null; n.fy = null;
-                })
-            );
-
-        var labels = g.append('g')
-            .selectAll('text')
-            .data(d.nodes)
-            .enter().append('text')
-            .text(function(n) { return n.label; })
-            .attr('class', 'node-label')
-            .attr('fill', function() { return isDark() ? '#BBB' : '#555'; })
-            .attr('dx', function(n) { return GROUP_SIZES[n.group] + 4; })
-            .attr('dy', 3)
-            .attr('cursor', 'pointer');
-
-        function highlight(nodeId) {
-            var connected = new Set();
-            if (nodeId) {
-                d.edges.forEach(function(e) {
-                    var sid = typeof e.source === 'object' ? e.source.id : e.source;
-                    var tid = typeof e.target === 'object' ? e.target.id : e.target;
-                    if (sid === nodeId) connected.add(tid);
-                    if (tid === nodeId) connected.add(sid);
-                });
-                connected.add(nodeId);
-            }
-            nodeGroup.attr('opacity', function(n) { return !nodeId || connected.has(n.id) ? 0.85 : 0.08; });
-            link.attr('stroke-opacity', function(e) {
-                if (!nodeId) return 0.5;
-                var sid = typeof e.source === 'object' ? e.source.id : e.source;
-                var tid = typeof e.target === 'object' ? e.target.id : e.target;
-                return sid === nodeId || tid === nodeId ? 0.8 : 0.04;
-            });
-            labels.attr('opacity', function(n) { return !nodeId || connected.has(n.id) ? 1 : 0.1; });
+    // Events
+    node.on('click', function(e, n) { handleNodeClick(n); });
+    node.on('dblclick', function(e, n) {
+        e.stopPropagation();
+        if (n.group === 'proyecto') {
+            window.open('/?q=' + encodeURIComponent(n.label), '_blank');
         }
+    });
+    node.on('mouseover', function(e, n) {
+        tooltip.innerHTML = '<strong>' + escHtml(n.label) + '</strong><br>'
+            + 'Tipo: ' + n.group
+            + (n.monto ? '<br>Monto: S/ ' + Number(n.monto).toLocaleString() : '')
+            + (n.region ? '<br>Región: ' + escHtml(n.region) : '')
+            + (n.anio ? '<br>Año: ' + n.anio : '');
+        tooltip.classList.remove('hidden');
+    }).on('mousemove', function(e) {
+        var rect = container.getBoundingClientRect();
+        tooltip.style.left = (e.clientX - rect.left + 12) + 'px';
+        tooltip.style.top = (e.clientY - rect.top - 10) + 'px';
+    }).on('mouseout', function() {
+        tooltip.classList.add('hidden');
+    });
 
-        nodeGroup.on('click', function(e, n) {
-            e.stopPropagation();
-            if (selectedNode === n.id) {
-                selectedNode = null;
-                highlight(null);
-            } else {
-                selectedNode = n.id;
-                highlight(n.id);
-            }
-        });
+    // Update simulation
+    simulation.nodes(allNodes);
+    simulation.force('link').links(allEdges);
+    simulation.alpha(0.3).restart();
 
-        svg.on('click', function() {
-            if (selectedNode) {
-                selectedNode = null;
-                highlight(null);
-            }
-        });
-
-        nodeGroup.on('dblclick', function(e, n) {
-            e.stopPropagation();
-            if (n.group === 'proyecto') {
-                window.open('/?q=' + encodeURIComponent(n.label), '_blank');
-            }
-        });
-
-        nodeGroup.on('mouseover', function(e, n) {
-            tooltip.innerHTML = '<strong>' + escHtml(n.label) + '</strong><br>'
-                + 'Tipo: ' + n.group
-                + (n.monto ? '<br>Monto: S/ ' + Number(n.monto).toLocaleString() : '')
-                + (n.region ? '<br>Región: ' + escHtml(n.region) : '')
-                + (n.anio ? '<br>Año: ' + n.anio : '');
-            tooltip.classList.remove('hidden');
-        }).on('mousemove', function(e) {
-            var rect = container.getBoundingClientRect();
-            tooltip.style.left = (e.clientX - rect.left + 12) + 'px';
-            tooltip.style.top = (e.clientY - rect.top - 10) + 'px';
-        }).on('mouseout', function() {
-            tooltip.classList.add('hidden');
-        });
-
-        simulation.on('tick', function() {
-            link.attr('x1', function(l) { return l.source.x; })
-                .attr('y1', function(l) { return l.source.y; })
-                .attr('x2', function(l) { return l.target.x; })
-                .attr('y2', function(l) { return l.target.y; });
-            nodeGroup.attr('cx', function(n) { return n.x; })
-                .attr('cy', function(n) { return n.y; });
-            labels.attr('x', function(n) { return n.x; })
-                .attr('y', function(n) { return n.y; });
-        });
+    simulation.on('tick', function() {
+        link.attr('x1', function(l) { return l.source.x; })
+            .attr('y1', function(l) { return l.source.y; })
+            .attr('x2', function(l) { return l.target.x; })
+            .attr('y2', function(l) { return l.target.y; });
+        node.attr('cx', function(n) { return n.x; })
+            .attr('cy', function(n) { return n.y; });
+        label.attr('x', function(n) { return n.x; })
+            .attr('y', function(n) { return n.y; });
     });
 }
 
-setTimeout(loadGraph, 50);
+function mergeData(newNodes, newEdges, parentKey) {
+    var existingKeys = {};
+    allNodes.forEach(function(n) { existingKeys[n.key] = true; });
+
+    var parentNode = null;
+    if (parentKey) {
+        parentNode = allNodes.find(function(n) { return n.key === parentKey; });
+    }
+
+    newNodes.forEach(function(n) {
+        if (!existingKeys[n.key]) {
+            if (parentNode) {
+                n.x = parentNode.x + (Math.random() - 0.5) * 120;
+                n.y = parentNode.y + (Math.random() - 0.5) * 120 + 60;
+            }
+            allNodes.push(n);
+            existingKeys[n.key] = true;
+        }
+    });
+
+    var edgeSet = {};
+    allEdges.forEach(function(e) { edgeSet[e.source + '-' + e.target] = true; });
+    newEdges.forEach(function(e) {
+        var k = e.source + '-' + e.target;
+        if (!edgeSet[k]) {
+            allEdges.push(e);
+            edgeSet[k] = true;
+        }
+    });
+}
+
+function dimLevel(dimLevel) {
+    nodeGroup.selectAll('circle').attr('opacity', function(n) {
+        return n._level !== undefined && n._level < dimLevel ? 0.2 : 0.85;
+    });
+    labelGroup.selectAll('text').attr('opacity', function(n) {
+        return n._level !== undefined && n._level < dimLevel ? 0.15 : 1;
+    });
+    linkGroup.selectAll('line').attr('stroke-opacity', function(e) {
+        var sid = typeof e.source === 'object' ? e.source.id : e.source;
+        var tid = typeof e.target === 'object' ? e.target.id : e.target;
+        var sn = allNodes.find(function(n) { return n.id === sid; });
+        var tn = allNodes.find(function(n) { return n.id === tid; });
+        if (sn && tn && sn._level < dimLevel && tn._level < dimLevel) return 0.05;
+        return 0.3;
+    });
+}
+
+function handleNodeClick(n) {
+    if (n.group === 'linea' || n.group === 'region') {
+        expandNode(n);
+    } else if (n.group === 'proyecto') {
+        expandProject(n);
+    }
+}
+
+function expandNode(n) {
+    fetch('/api/graph?mode=expand&key=' + n.key)
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+        d.nodes.forEach(function(node) { node._level = 1; });
+        mergeData(d.nodes, d.edges, n.key);
+        level = 1;
+        render();
+        dimLevel(1);
+        updateInfo(n);
+    });
+}
+
+function expandProject(n) {
+    fetch('/api/graph?mode=expand&key=' + n.key)
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+        d.nodes.forEach(function(node) { node._level = 2; });
+        mergeData(d.nodes, d.edges, n.key);
+        level = 2;
+        render();
+        dimLevel(2);
+        updateInfo(n);
+    });
+}
+
+function updateInfo(n) {
+    if (!n) {
+        sidebarInfo.innerHTML = '<strong>Vista general</strong><br>Haz clic en un estímulo o región para explorar';
+        return;
+    }
+    var icon = GROUP_COLORS[n.group] || '#fff';
+    sidebarInfo.innerHTML = '<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:' + icon + ';margin-right:6px;"></span><strong>' + escHtml(n.label) + '</strong><br>'
+        + (n.group === 'linea' ? 'Estímulo' : n.group) + ' · '
+        + allNodes.length + ' nodos · '
+        + allEdges.length + ' conexiones';
+}
+
+function resetGraph() {
+    allNodes = [];
+    allEdges = [];
+    level = 0;
+    initSimulation();
+    loadOverview();
+}
+
+function loadOverview() {
+    var limit = document.getElementById('f-limit').value;
+    fetch('/api/graph?mode=overview&limit=' + limit)
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+        d.nodes.forEach(function(n) { n._level = 0; });
+        allNodes = d.nodes;
+        allEdges = d.edges || [];
+        render();
+        updateInfo(null);
+    });
+}
+
+// Init
+initSimulation();
+loadOverview();
+
+svg.on('click', function() {
+    if (level > 0) {
+        resetGraph();
+    }
+});
 
 window.addEventListener('resize', function() {
-    var width = container.clientWidth;
-    var height = container.clientHeight;
-    svg.selectAll('*').remove();
-    loadGraph();
+    if (allNodes.length) render();
 });
 </script>
 </body>
