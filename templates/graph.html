@@ -362,7 +362,7 @@ function render() {
         if (pinnedNode) {
             var pn = allNodes.find(function(n) { return n.id === pinnedNode; });
             if (pn) {
-                focusRing.attr('cx', pn.x).attr('cy', pn.y).attr('r', GROUP_PROPS[pn.group].r + 4).attr('opacity', 1);
+                focusRing.attr('cx', pn.x).attr('cy', pn.y).attr('r', GROUP_PROPS[pn.group].r + 4).attr('opacity', 0.8);
             }
         } else {
             focusRing.attr('opacity', 0);
