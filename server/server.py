@@ -939,8 +939,19 @@ def api_graph():
 
     # fallback: original all-at-once mode
     limit = min(int(request.args.get("limit", 200)), 500)
+    yf = request.args.get("yf", "")
+    yt = request.args.get("yt", "")
     groups_filter = request.args.get("groups", "")
     allowed = set(groups_filter.split(",")) if groups_filter else {"proyecto", "persona", "region", "linea"}
+    where_extra = ""
+    params = []
+    if yf:
+        where_extra += " AND cv.anio >= ?"
+        params.append(int(yf))
+    if yt:
+        where_extra += " AND cv.anio <= ?"
+        params.append(int(yt))
+    params.append(limit)
     rows = query("""
         SELECT p.id, ob.titulo, p.monto_otorgado as monto, cv.anio,
                lc.codigo as linea_codigo, lc.nombre_canonico as linea_nombre,
@@ -954,9 +965,10 @@ def api_graph():
         LEFT JOIN obra ob ON p.obra_id = ob.id
         LEFT JOIN persona pe ON p.persona_beneficiaria_id = pe.id
         WHERE p.estado = 'beneficiario' AND cv.anio > 0
+    """ + where_extra + """
         ORDER BY cv.anio DESC, p.monto_otorgado DESC
         LIMIT ?
-    """, [limit])
+    """, params)
     nodes, edges = _build_graph_nodes(rows, allowed)
     return jsonify({"nodes": nodes, "edges": edges})
 
@@ -974,6 +986,7 @@ def graph():
 
     return render_template(
         "graph.html",
+        anios=anios_list,
         lineas=lineas_list,
         lineas_dict=lineas_dict,
         total_db=total_db,

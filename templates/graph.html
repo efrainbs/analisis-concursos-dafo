@@ -65,6 +65,8 @@ body { display: flex; flex-direction: column; }
 .graph-sidebar label { font-size: 12px; font-weight: 600; color: var(--neutral-60); text-transform: uppercase; letter-spacing: 0.04em; }
 .graph-sidebar input[type="range"] { width: 100%; accent-color: var(--primary); }
 .graph-sidebar .limit-value { font-size: 14px; font-family: var(--mono-font); color: var(--neutral-100); }
+.graph-sidebar .range-row { display: flex; gap: 0.3rem; }
+.graph-sidebar .range-row select { flex: 1; border: 1px solid var(--neutral-40); padding: 0.25rem 0.3rem; font-size: 12px; font-family: var(--mono-font); background: var(--neutral-0); color: var(--neutral-100); border-radius: 4px; }
 .graph-sidebar button { border: 1px solid var(--neutral-40); padding: 0.35rem 0.7rem; font-size: 13px; font-family: var(--mono-font); background: var(--neutral-0); cursor: pointer; color: var(--neutral-100); border-radius: 4px; transition: all 0.15s; }
 .graph-sidebar button:hover { background: var(--neutral-20); border-color: var(--neutral-60); }
 .sidebar-info { font-size: 12px; color: var(--neutral-60); line-height: 1.6; }
@@ -122,6 +124,25 @@ body { display: flex; flex-direction: column; }
         <input type="range" id="f-limit" min="20" max="400" value="150" step="10" oninput="document.getElementById('limit-display').textContent=this.value">
         <span class="limit-value" id="limit-display">150</span>
     </div>
+
+    <div>
+        <label>Edición</label>
+        <div class="range-row">
+            <select id="yf">
+                <option value="">Desde</option>
+                {% for a in anios %}
+                <option value="{{ a }}">{{ a }}</option>
+                {% endfor %}
+            </select>
+            <select id="yt">
+                <option value="">Hasta</option>
+                {% for a in anios %}
+                <option value="{{ a }}">{{ a }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
     <button onclick="loadGraph()">Actualizar</button>
     <div class="graph-legend">
         <span><span class="legend-dot" style="background:#FF9800;"></span>Estímulo</span>
@@ -346,9 +367,14 @@ function render() {
 
 function loadGraph() {
     var limit = document.getElementById('f-limit').value;
+    var yf = document.getElementById('yf').value;
+    var yt = document.getElementById('yt').value;
     allNodes = [];
     allEdges = [];
-    fetch('/api/graph?limit=' + limit)
+    var params = 'limit=' + limit;
+    if (yf) params += '&yf=' + yf;
+    if (yt) params += '&yt=' + yt;
+    fetch('/api/graph?' + params)
     .then(function(r) { return r.json(); })
     .then(function(d) {
         allNodes = d.nodes;
