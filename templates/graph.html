@@ -187,10 +187,10 @@ var container = document.getElementById('graph-container');
 
 var GROUP_COLORS = { proyecto: '#E80247', persona: '#2D7D9A', region: '#4CAF50', linea: '#FF9800' };
 var GROUP_PROPS = {
-    linea:   { r: 18, opacity: 1,   labelOpacity: 1,   charge: -300 },
-    region:  { r: 16, opacity: 0.9, labelOpacity: 1,   charge: -250 },
-    proyecto:{ r: 5,  opacity: 0.35, labelOpacity: 0,   charge: -40  },
-    persona: { r: 4,  opacity: 0.25, labelOpacity: 0,   charge: -30  }
+    linea:   { r: 18, opacity: 1,   hoverOpacity: 1,   labelOpacity: 1,   charge: -300 },
+    region:  { r: 16, opacity: 0.9, hoverOpacity: 0.9, labelOpacity: 1,   charge: -250 },
+    proyecto:{ r: 5,  opacity: 0.04, hoverOpacity: 0.8, labelOpacity: 0,   charge: -40  },
+    persona: { r: 4,  opacity: 0.04, hoverOpacity: 0.6, labelOpacity: 0,   charge: -30  }
 };
 
 var simulation, g, linkGroup, nodeGroup, labelGroup;
@@ -277,14 +277,22 @@ function render() {
             });
             connected.add(nodeId);
         }
-        node.attr('opacity', function(n) { return !nodeId || connected.has(n.id) ? GROUP_PROPS[n.group].opacity : 0.04; })
-            .attr('stroke-opacity', function(n) { return !nodeId || connected.has(n.id) ? 1 : 0.1; });
-        label.attr('opacity', function(n) { return !nodeId || connected.has(n.id) ? 0.9 : 0; });
+        node.attr('opacity', function(n) {
+            if (!nodeId) return GROUP_PROPS[n.group].opacity;
+            return connected.has(n.id) ? GROUP_PROPS[n.group].hoverOpacity : 0.02;
+        }).attr('stroke-opacity', function(n) {
+            if (!nodeId) return 1;
+            return connected.has(n.id) ? 1 : 0.1;
+        });
+        label.attr('opacity', function(n) {
+            if (!nodeId) return GROUP_PROPS[n.group].labelOpacity;
+            return connected.has(n.id) ? 0.9 : 0;
+        });
         link.attr('stroke-opacity', function(e) {
             if (!nodeId) return 0.15;
             var sid = typeof e.source === 'object' ? e.source.id : e.source;
             var tid = typeof e.target === 'object' ? e.target.id : e.target;
-            return sid === nodeId || tid === nodeId ? 0.6 : 0.02;
+            return sid === nodeId || tid === nodeId ? 0.5 : 0.01;
         });
     }
 
