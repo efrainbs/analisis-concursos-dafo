@@ -206,7 +206,7 @@ function escHtml(s) {
 var svg = d3.select('#graph-svg');
 var tooltip = document.getElementById('tooltip');
 var container = document.getElementById('graph-container');
-var tooltipNode = null;
+var pinnedNode = null;
 
 var GROUP_COLORS = { proyecto: '#E80247', persona: '#2D7D9A', region: '#4CAF50', linea: '#FF9800' };
 var GROUP_PROPS = {
@@ -216,7 +216,7 @@ var GROUP_PROPS = {
     persona: { r: 4,  opacity: 0.04, hoverOpacity: 0.6, labelOpacity: 0,   charge: -30  }
 };
 
-var simulation, g, linkGroup, nodeGroup, labelGroup;
+var simulation, g, linkGroup, nodeGroup, labelGroup, focusRing;
 var allNodes = [], allEdges = [];
 
 function isDark() {
@@ -231,6 +231,7 @@ function initGraph() {
     linkGroup = g.append('g');
     nodeGroup = g.append('g');
     labelGroup = g.append('g');
+    focusRing = g.append('circle').attr('class', 'focus-ring').attr('fill', 'none').attr('stroke', '#FFD700').attr('stroke-width', 3).attr('stroke-dasharray', '4,3').attr('opacity', 0).attr('pointer-events', 'none');
 }
 
 function render() {
@@ -320,29 +321,21 @@ function render() {
     }
 
     node.on('mouseover', function(e, n) {
-        highlight(n.id);
+        if (!pinnedNode) highlight(n.id);
     }).on('mousemove', function(e) {
     }).on('mouseout', function() {
-        highlight(null);
+        if (!pinnedNode) highlight(null);
     });
 
     node.on('click', function(e, n) {
         e.stopPropagation();
-        if (tooltipNode === n.id) {
-            tooltip.classList.add('hidden');
-            tooltipNode = null;
+        if (pinnedNode === n.id) {
+            pinnedNode = null;
+            highlight(null);
             return;
         }
-        tooltipNode = n.id;
-        var rect = container.getBoundingClientRect();
-        tooltip.style.left = (e.clientX - rect.left + 14) + 'px';
-        tooltip.style.top = (e.clientY - rect.top - 8) + 'px';
-        tooltip.innerHTML = '<strong>' + escHtml(n.label) + '</strong><br>'
-            + 'Tipo: ' + n.group
-            + (n.monto ? '<br>Monto: S/ ' + Number(n.monto).toLocaleString() : '')
-            + (n.region ? '<br>Región: ' + escHtml(n.region) : '')
-            + (n.anio ? '<br>Año: ' + n.anio : '');
-        tooltip.classList.remove('hidden');
+        pinnedNode = n.id;
+        highlight(n.id);
     });
 
     node.on('dblclick', function(e, n) {
@@ -352,7 +345,7 @@ function render() {
         }
     });
 
-    svg.on('click', function() { highlight(null); tooltip.classList.add('hidden'); tooltipNode = null; });
+    svg.on('click', function() { pinnedNode = null; highlight(null); });
 
     // Tick
     simulation.on('tick', function() {
@@ -362,6 +355,14 @@ function render() {
             .attr('y2', function(l) { return l.target.y; });
         node.attr('cx', function(n) { return n.x; }).attr('cy', function(n) { return n.y; });
         label.attr('x', function(n) { return n.x; }).attr('y', function(n) { return n.y; });
+        if (pinnedNode) {
+            var pn = allNodes.find(function(n) { return n.id === pinnedNode; });
+            if (pn) {
+                focusRing.attr('cx', pn.x).attr('cy', pn.y).attr('r', GROUP_PROPS[pn.group].r + 4).attr('opacity', 1);
+            }
+        } else {
+            focusRing.attr('opacity', 0);
+        }
     });
 }
 
@@ -391,7 +392,7 @@ window.addEventListener('resize', function() {
 });
 
 document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') { tooltip.classList.add('hidden'); tooltipNode = null; }
+    if (e.key === 'Escape') { pinnedNode = null; highlight(null); }
 });
 </script>
 </body>
