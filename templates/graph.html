@@ -79,7 +79,8 @@ body { display: flex; flex-direction: column; }
 .legend-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 0.3rem; }
 
 .node-label { font-size: 10px; font-family: var(--mono-font); pointer-events: none; }
-.tooltip { position: absolute; padding: 0.5rem 0.8rem; background: var(--neutral-0); border: 1px solid var(--neutral-40); border-radius: 6px; font-size: 13px; font-family: var(--body-font); pointer-events: none; box-shadow: 0 4px 12px rgba(0,0,0,0.1); z-index: 20; max-width: 280px; }
+.tooltip { position: absolute; padding: 0.5rem 0.8rem; background: var(--neutral-0); border: 1px solid var(--neutral-40); border-radius: 6px; font-size: 13px; font-family: var(--body-font); pointer-events: none; box-shadow: 0 4px 12px rgba(0,0,0,0.1); z-index: 20; max-width: 280px; transition: opacity 0.15s; }
+.tooltip.hidden { opacity: 0; pointer-events: none; }
 .tooltip strong { color: var(--neutral-100); }
 </style>
 </head>
@@ -184,6 +185,7 @@ function escHtml(s) {
 var svg = d3.select('#graph-svg');
 var tooltip = document.getElementById('tooltip');
 var container = document.getElementById('graph-container');
+var tooltipNode = null;
 
 var GROUP_COLORS = { proyecto: '#E80247', persona: '#2D7D9A', region: '#4CAF50', linea: '#FF9800' };
 var GROUP_PROPS = {
@@ -298,16 +300,19 @@ function render() {
 
     node.on('mouseover', function(e, n) {
         highlight(n.id);
-        tooltip.classList.add('hidden');
     }).on('mousemove', function(e) {
-        tooltip.classList.add('hidden');
     }).on('mouseout', function() {
         highlight(null);
-        tooltip.classList.add('hidden');
     });
 
     node.on('click', function(e, n) {
         e.stopPropagation();
+        if (tooltipNode === n.id) {
+            tooltip.classList.add('hidden');
+            tooltipNode = null;
+            return;
+        }
+        tooltipNode = n.id;
         var rect = container.getBoundingClientRect();
         tooltip.style.left = (e.clientX - rect.left + 14) + 'px';
         tooltip.style.top = (e.clientY - rect.top - 8) + 'px';
@@ -326,7 +331,9 @@ function render() {
         }
     });
 
-    svg.on('click', function() { highlight(null); tooltip.classList.add('hidden'); });
+    svg.on('click', function() { highlight(null); tooltip.classList.add('hidden'); tooltipNode = null; });
+
+    node.on('dblclick', function(e, n) {
 
     // Tick
     simulation.on('tick', function() {
@@ -360,7 +367,7 @@ window.addEventListener('resize', function() {
 });
 
 document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') tooltip.classList.add('hidden');
+    if (e.key === 'Escape') { tooltip.classList.add('hidden'); tooltipNode = null; }
 });
 </script>
 </body>
