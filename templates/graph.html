@@ -88,6 +88,16 @@ body { display: flex; flex-direction: column; }
 .tooltip { position: absolute; padding: 0.5rem 0.8rem; background: var(--neutral-0); border: 1px solid var(--neutral-40); border-radius: 6px; font-size: 13px; font-family: var(--body-font); pointer-events: none; box-shadow: 0 4px 12px rgba(0,0,0,0.1); z-index: 20; max-width: 280px; transition: opacity 0.15s; }
 .tooltip.hidden { opacity: 0; pointer-events: none; }
 .tooltip strong { color: var(--neutral-100); }
+.modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 200; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+.modal-overlay.active { opacity: 1; pointer-events: auto; }
+.modal-box { background: var(--neutral-0); color: var(--neutral-100); border-radius: 12px; padding: 1.5rem 2rem; max-width: 420px; width: 90vw; box-shadow: 0 8px 32px rgba(0,0,0,0.2); position: relative; }
+.modal-box h2 { font-size: 22px; font-weight: 600; margin-bottom: 0.3rem; letter-spacing: -0.01em; }
+.modal-box .modal-close { position: absolute; top: 0.8rem; right: 1rem; cursor: pointer; font-size: 20px; color: var(--neutral-60); border: none; background: none; }
+.modal-box .modal-close:hover { color: var(--neutral-100); }
+.modal-box table { width: 100%; border-collapse: collapse; margin-top: 0.8rem; }
+.modal-box td { padding: 0.3rem 0; border-bottom: 1px solid var(--neutral-40); font-size: 14px; }
+.modal-box td:first-child { color: var(--neutral-60); width: 100px; }
+.modal-box .modal-link { display: inline-block; margin-top: 1rem; font-size: 14px; color: var(--primary); cursor: pointer; text-decoration: underline; }
 </style>
 </head>
 <body>
@@ -192,6 +202,21 @@ body { display: flex; flex-direction: column; }
 
 <div class="tooltip hidden" id="tooltip"></div>
 
+<div class="modal-overlay" id="modal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal()">&times;</button>
+    <h2 id="modal-title"></h2>
+    <table>
+      <tr><td>Año</td><td id="modal-anio"></td></tr>
+      <tr><td>Monto</td><td id="modal-monto"></td></tr>
+      <tr><td>Estímulo</td><td id="modal-linea"></td></tr>
+      <tr><td>Persona</td><td id="modal-persona"></td></tr>
+      <tr><td>Región</td><td id="modal-region"></td></tr>
+    </table>
+    <span class="modal-link" id="modal-link" onclick="modalSearch()">Ver en Proyectos &rarr;</span>
+  </div>
+</div>
+
 <script>
 function toggleTheme() {
     var cur = document.documentElement.getAttribute('data-theme');
@@ -210,7 +235,48 @@ function escHtml(s) {
 var svg = d3.select('#graph-svg');
 var tooltip = document.getElementById('tooltip');
 var container = document.getElementById('graph-container');
+var modal = document.getElementById('modal');
 var pinnedNode = null;
+var modalProjectKey = null;
+
+function getConnected(nodeId) {
+    var edges = allEdges;
+    var connected = {};
+    edges.forEach(function(e) {
+        var sid = typeof e.source === 'object' ? e.source.id : e.source;
+        var tid = typeof e.target === 'object' ? e.target.id : e.target;
+        if (sid === nodeId) connected[tid] = true;
+        if (tid === nodeId) connected[sid] = true;
+    });
+    return Object.keys(connected).map(function(id) { return allNodes.find(function(n) { return n.id == id; }); }).filter(Boolean);
+}
+
+function showProjectModal(n) {
+    var conn = getConnected(n.id);
+    var lineaNode = conn.find(function(c) { return c.group === 'linea'; });
+    var personaNode = conn.find(function(c) { return c.group === 'persona'; });
+    var regionNode = conn.find(function(c) { return c.group === 'region'; });
+    document.getElementById('modal-title').textContent = n.label;
+    document.getElementById('modal-anio').textContent = n.anio || '—';
+    document.getElementById('modal-monto').textContent = n.monto ? 'S/ ' + Number(n.monto).toLocaleString() : '—';
+    document.getElementById('modal-linea').textContent = lineaNode ? lineaNode.label : '—';
+    document.getElementById('modal-persona').textContent = personaNode ? personaNode.label : '—';
+    document.getElementById('modal-region').textContent = regionNode ? regionNode.label : '—';
+    modalProjectKey = n.key;
+    modal.classList.add('active');
+}
+
+function closeModal() {
+    modal.classList.remove('active');
+}
+
+function modalSearch() {
+    if (modalProjectKey) {
+        var n = allNodes.find(function(n) { return n.key === modalProjectKey; });
+        if (n) window.open('/?q=' + encodeURIComponent(n.label), '_blank');
+    }
+    closeModal();
+}
 
 var GROUP_COLORS = { proyecto: '#E80247', persona: '#2D7D9A', region: '#4CAF50', linea: '#FF9800' };
 var GROUP_PROPS = {
@@ -333,6 +399,18 @@ function render() {
 
     node.on('click', function(e, n) {
         e.stopPropagation();
+        if (n.group === 'proyecto') {
+            if (pinnedNode === n.id) {
+                pinnedNode = null;
+                highlight(null);
+                closeModal();
+                return;
+            }
+            pinnedNode = n.id;
+            highlight(n.id);
+            showProjectModal(n);
+            return;
+        }
         if (pinnedNode === n.id) {
             pinnedNode = null;
             highlight(null);
@@ -349,7 +427,7 @@ function render() {
         }
     });
 
-    svg.on('click', function() { pinnedNode = null; highlight(null); });
+    svg.on('click', function() { pinnedNode = null; highlight(null); closeModal(); });
 
     // Tick
     simulation.on('tick', function() {
@@ -396,7 +474,7 @@ window.addEventListener('resize', function() {
 });
 
 document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') { pinnedNode = null; highlight(null); }
+    if (e.key === 'Escape') { pinnedNode = null; highlight(null); closeModal(); }
 });
 </script>
 </body>
