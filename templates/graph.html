@@ -175,6 +175,7 @@ function escHtml(s) {
 var svg = d3.select('#graph-svg');
 var tooltip = document.getElementById('tooltip');
 var container = document.getElementById('graph-container');
+var selectedNode = null;
 
 var GROUP_COLORS = {
     proyecto: '#E80247',
@@ -189,8 +190,13 @@ var GROUP_SIZES = {
     linea: 10
 };
 
+function isDark() {
+    return document.documentElement.getAttribute('data-theme') === 'dark';
+}
+
 function loadGraph() {
     var limit = document.getElementById('f-limit').value;
+    selectedNode = null;
     svg.selectAll('*').remove();
 
     fetch('/api/graph?limit=' + limit)
@@ -205,7 +211,14 @@ function loadGraph() {
             .force('center', d3.forceCenter(width / 2, height / 2))
             .force('collision', d3.forceCollide().radius(function(n) { return GROUP_SIZES[n.group] + 4; }));
 
-        var link = svg.append('g')
+        // Zoom & pan
+        var g = svg.append('g');
+        var zoom = d3.zoom()
+            .scaleExtent([0.2, 6])
+            .on('zoom', function(e) { g.attr('transform', e.transform); });
+        svg.call(zoom);
+
+        var link = g.append('g')
             .selectAll('line')
             .data(d.edges)
             .enter().append('line')
@@ -213,7 +226,7 @@ function loadGraph() {
             .attr('stroke-width', 1)
             .attr('stroke-opacity', 0.5);
 
-        var node = svg.append('g')
+        var nodeGroup = g.append('g')
             .selectAll('circle')
             .data(d.nodes)
             .enter().append('circle')
@@ -222,6 +235,7 @@ function loadGraph() {
             .attr('stroke', function() { return isDark() ? '#222' : '#FFF'; })
             .attr('stroke-width', 1.5)
             .attr('opacity', 0.85)
+            .attr('cursor', 'pointer')
             .call(d3.drag()
                 .on('start', function(e, n) {
                     if (!e.active) simulation.alphaTarget(0.3).restart();
@@ -236,7 +250,7 @@ function loadGraph() {
                 })
             );
 
-        var labels = svg.append('g')
+        var labels = g.append('g')
             .selectAll('text')
             .data(d.nodes)
             .enter().append('text')
@@ -244,9 +258,56 @@ function loadGraph() {
             .attr('class', 'node-label')
             .attr('fill', function() { return isDark() ? '#BBB' : '#555'; })
             .attr('dx', function(n) { return GROUP_SIZES[n.group] + 4; })
-            .attr('dy', 3);
+            .attr('dy', 3)
+            .attr('cursor', 'pointer');
 
-        node.on('mouseover', function(e, n) {
+        function highlight(nodeId) {
+            var connected = new Set();
+            if (nodeId) {
+                d.edges.forEach(function(e) {
+                    var sid = typeof e.source === 'object' ? e.source.id : e.source;
+                    var tid = typeof e.target === 'object' ? e.target.id : e.target;
+                    if (sid === nodeId) connected.add(tid);
+                    if (tid === nodeId) connected.add(sid);
+                });
+                connected.add(nodeId);
+            }
+            nodeGroup.attr('opacity', function(n) { return !nodeId || connected.has(n.id) ? 0.85 : 0.08; });
+            link.attr('stroke-opacity', function(e) {
+                if (!nodeId) return 0.5;
+                var sid = typeof e.source === 'object' ? e.source.id : e.source;
+                var tid = typeof e.target === 'object' ? e.target.id : e.target;
+                return sid === nodeId || tid === nodeId ? 0.8 : 0.04;
+            });
+            labels.attr('opacity', function(n) { return !nodeId || connected.has(n.id) ? 1 : 0.1; });
+        }
+
+        nodeGroup.on('click', function(e, n) {
+            e.stopPropagation();
+            if (selectedNode === n.id) {
+                selectedNode = null;
+                highlight(null);
+            } else {
+                selectedNode = n.id;
+                highlight(n.id);
+            }
+        });
+
+        svg.on('click', function() {
+            if (selectedNode) {
+                selectedNode = null;
+                highlight(null);
+            }
+        });
+
+        nodeGroup.on('dblclick', function(e, n) {
+            e.stopPropagation();
+            if (n.group === 'proyecto') {
+                window.open('/?q=' + encodeURIComponent(n.label), '_blank');
+            }
+        });
+
+        nodeGroup.on('mouseover', function(e, n) {
             tooltip.innerHTML = '<strong>' + escHtml(n.label) + '</strong><br>'
                 + 'Tipo: ' + n.group
                 + (n.monto ? '<br>Monto: S/ ' + Number(n.monto).toLocaleString() : '')
@@ -266,16 +327,12 @@ function loadGraph() {
                 .attr('y1', function(l) { return l.source.y; })
                 .attr('x2', function(l) { return l.target.x; })
                 .attr('y2', function(l) { return l.target.y; });
-            node.attr('cx', function(n) { return n.x; })
+            nodeGroup.attr('cx', function(n) { return n.x; })
                 .attr('cy', function(n) { return n.y; });
             labels.attr('x', function(n) { return n.x; })
                 .attr('y', function(n) { return n.y; });
         });
     });
-}
-
-function isDark() {
-    return document.documentElement.getAttribute('data-theme') === 'dark';
 }
 
 loadGraph();
