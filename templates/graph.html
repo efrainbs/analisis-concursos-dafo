@@ -333,8 +333,6 @@ function render() {
 
     svg.on('click', function() { highlight(null); tooltip.classList.add('hidden'); tooltipNode = null; });
 
-    node.on('dblclick', function(e, n) {
-
     // Tick
     simulation.on('tick', function() {
         link.attr('x1', function(l) { return l.source.x; })
