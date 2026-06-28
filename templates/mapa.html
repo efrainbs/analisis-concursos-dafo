@@ -34,20 +34,22 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { font-family: var(--body-font); background: var(--neutral-0); color: var(--neutral-100); -webkit-font-smoothing: antialiased; font-size: 100%; font-weight: 400; line-height: 1.5; }
 a { color: inherit; text-decoration: none; }
-.wrap { max-width: 90vw; margin: 0 auto; padding: 0 0.5rem; }
+.wrap { max-width: 90vw; margin: 0 auto; padding: 1.5rem 0.5rem; }
 .hidden { display: none !important; }
 input, select, textarea, button, .btn { border-radius: 4px; }
-.c-header { position: sticky; top: 0; z-index: 100; background: var(--neutral-0); }
-.c-header::after { content: ""; display: block; position: absolute; left: 0; right: 0; bottom: 0; height: 24px; background: linear-gradient(to bottom, var(--neutral-0), transparent); pointer-events: none; transform: translateY(100%); }
-.c-header__content { max-width: 90vw; margin: 0 auto; padding: 0 0.5rem; display: flex; align-items: center; justify-content: space-between; height: 50px; }
+.c-header { position: sticky; top: 0; z-index: 100; background: rgba(255,255,255,0.8); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); }
+[data-theme="dark"] .c-header { background:rgba(13,27,42,0.8); }
+.c-header::after { content: ""; display: block; position: absolute; left: 0; right: 0; bottom: 0; height: 32px; background: linear-gradient(to bottom, rgba(255,255,255,0.8), transparent); pointer-events: none; transform: translateY(100%); }
+[data-theme="dark"] .c-header::after { background: linear-gradient(to bottom, rgba(13,27,42,0.8), transparent); }
+.c-header__content { max-width: 90vw; margin: 0 auto; padding: 1.5rem 0.5rem; display: flex; align-items: center; justify-content: space-between; }
 .c-header__left { display: flex; align-items: center; gap: 2.5rem; }
 .c-main-logo { display: flex; align-items: center; }
 .c-main-logo svg { height: 28px; width: auto; }
 .c-header__right { display: flex; align-items: center; gap: 1rem; font-size: 14px; color: var(--neutral-60); }
-.c-header__right a { color: var(--neutral-60); transition: color 0.15s; }
+.c-header__right a { color: inherit; transition: color 0.15s; }
 .c-header__right a:hover { color: var(--neutral-100); }
 .c-header__nav { display: flex; gap: 1.5rem; font-size: 14px; }
-.c-header__nav a { color: var(--neutral-60); transition: color 0.15s; }
+.c-header__nav a { color: inherit; transition: color 0.15s; }
 .c-header__nav a:hover, .c-header__nav a.active { color: var(--neutral-100); font-weight: 600; }
 .c-header__lang { display: flex; align-items: center; gap: 0.4rem; }
 .c-header__lang .active-lang { color: var(--primary); font-weight: 600; }
@@ -81,7 +83,8 @@ input, select, textarea, button, .btn { border-radius: 4px; }
 .footer-bottom { text-align: center; margin-top: 1rem; border-top: 1px solid var(--footer-border); padding-top: 0.8rem; font-size: 14px; color: var(--neutral-80); }
 .theme-toggle { display: inline-flex; align-items: center; gap: 0.4rem; cursor: pointer; background: none; border: none; padding: 0.3rem; color: var(--neutral-60); font-size: 14px; font-family: var(--mono-font); transition: color 0.15s; }
 .theme-toggle:hover { color: var(--neutral-100); }
-.theme-toggle i { font-size: 16px; }
+.theme-toggle i { font-size: 24px; }
+.c-header__nav a { text-transform:uppercase; }
 [data-theme="dark"] .theme-toggle .icon-sun { display: inline; }
 [data-theme="dark"] .theme-toggle .icon-moon { display: none; }
 .theme-toggle .icon-sun { display: none; }
@@ -105,36 +108,7 @@ input, select, textarea, button, .btn { border-radius: 4px; }
 <body>
 
 <!-- HEADER -->
-<header class="c-header">
-<div class="c-header__content">
-    <div class="c-header__left">
-        <div class="c-main-logo">
-            <a href="/" aria-label="Go to the home page">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 40" fill="none">
-                    <text x="0" y="30" font-family="'Work Sans',sans-serif" font-weight="700" font-size="20" fill="currentColor">Mapa de proyectos audiovisuales</text>
-                </svg>
-            </a>
-        </div>
-        <nav class="c-header__nav">
-            <a href="/">Proyectos</a>
-            <a href="/timeline">Timeline</a>
-            <a href="/graph">Grafo</a>
-            <a href="/dashboard">Dashboard</a>
-            <a href="/mapa" class="active">Mapa</a>
-        </nav>
-    </div>
-    <div class="c-header__right">
-        <button type="button" class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle dark mode">
-            <i class="fa-regular fa-sun icon-sun"></i>
-            <i class="fa-regular fa-moon icon-moon"></i>
-        </button>
-        <div class="c-header__lang">
-            <span class="active-lang">es</span>
-
-        </div>
-    </div>
-</div>
-</header>
+{% include '_navbar.html' %}
 
 <!-- MAIN -->
 <div class="wrap">
@@ -215,33 +189,6 @@ input, select, textarea, button, .btn { border-radius: 4px; }
 
     <div id="map"></div>
 
-</div>
-
-<!-- FOOTER -->
-<div class="footer">
-<div class="wrap">
-    <div class="footer-grid">
-        <div>
-            <h4>Mapa de proyectos audiovisuales</h4>
-            <p>Estímulos Económicos del Ministerio</p>
-            <p>de Cultura del Perú</p>
-            <p class="dim">Solo lectura</p>
-        </div>
-        <div>
-            <h5>Explore the website</h5>
-            <p><a href="/">Proyectos</a> · <a href="/timeline">Timeline</a> · <a href="/graph">Grafo</a> · <a href="/dashboard">Dashboard</a> · <a href="/mapa">Mapa</a></p>
-        </div>
-        <div>
-            <h5>Database</h5>
-            <p>{{ total_db }} proyectos</p>
-            <p>{{ monto_db }} otorgados</p>
-            <p class="dim">SQLite · 14 tablas</p>
-        </div>
-    </div>
-    <div class="footer-bottom">
-        Powered by Flask · Datos DAFO · Leaflet.js
-    </div>
-</div>
 </div>
 
 <script>

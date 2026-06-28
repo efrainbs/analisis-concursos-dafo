@@ -24,6 +24,7 @@
   --focus-ring: #0D1B2A;
   --footer-bg: #0D1B2A; --footer-border: #2E3A47;
   --body-font: 'Work Sans', sans-serif; --mono-font: 'IBM Plex Mono', monospace;
+  --sidebar-w: 320px;
 }
 [data-theme="dark"] {
   --neutral-100: #FFF; --neutral-80: #BBBFC3; --neutral-60: #92989F;
@@ -35,16 +36,22 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { font-family: var(--body-font); background: var(--neutral-0); color: var(--neutral-100); -webkit-font-smoothing: antialiased; font-size: 100%; font-weight: 400; line-height: 1.5; overflow-x: hidden; }
 a { color: inherit; text-decoration: none; }
-.wrap { max-width: 90vw; margin: 0 auto; padding: 0 0.5rem; }
-.c-header { position: sticky; top: 0; z-index: 100; background: var(--neutral-0); }
-.c-header::after { content: ""; display: block; position: absolute; left: 0; right: 0; bottom: 0; height: 24px; background: linear-gradient(to bottom, var(--neutral-0), transparent); pointer-events: none; transform: translateY(100%); }
-.c-header__content { max-width: 90vw; margin: 0 auto; padding: 0 0.5rem; display: flex; align-items: center; justify-content: space-between; height: 50px; }
+.wrap { max-width: 90vw; margin: 0 auto; padding: 1.5rem 0.5rem; }
+input, select { border-radius: 4px; }
+button, .btn { border-radius: 4px; }
+.c-header { position: sticky; top: 0; z-index: 100; background: rgba(255,255,255,0.8); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); }
+[data-theme="dark"] .c-header { background:rgba(13,27,42,0.8); }
+.c-header::after { content: ""; display: block; position: absolute; left: 0; right: 0; bottom: 0; height: 32px; background: linear-gradient(to bottom, rgba(255,255,255,0.8), transparent); pointer-events: none; transform: translateY(100%); }
+[data-theme="dark"] .c-header::after { background: linear-gradient(to bottom, rgba(13,27,42,0.8), transparent); }
+.c-header__content { max-width: 90vw; margin: 0 auto; padding: 1.5rem 0.5rem; display: flex; align-items: center; justify-content: space-between; }
+.theme-toggle i { font-size: 24px; }
+.c-header__nav a { text-transform:uppercase; }
 .c-header__left { display: flex; align-items: center; gap: 2.5rem; }
 .c-main-logo { display: flex; align-items: center; }
 .c-main-logo svg { height: 28px; width: auto; }
 .c-header__right { display: flex; align-items: center; gap: 1rem; font-size: 14px; color: var(--neutral-60); }
 .c-header__nav { display: flex; gap: 1.5rem; font-size: 14px; }
-.c-header__nav a { color: var(--neutral-60); transition: color 0.15s; }
+.c-header__nav a { color: inherit; transition: color 0.15s; }
 .c-header__nav a:hover, .c-header__nav a.active { color: var(--neutral-100); font-weight: 600; }
 .footer { flex-shrink: 0; background: var(--footer-bg); color: var(--neutral-60); font-size: 14px; border-top: 1px solid var(--footer-border); }
 .footer-grid { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem; padding: 0.75rem 0; }
@@ -62,15 +69,19 @@ body { display: flex; flex-direction: column; }
 .page-wrap { flex: 1; min-height: 0; display: flex; flex-direction: column; }
 .page-content { flex: 1; min-height: 0; display: flex; flex-direction: row; }
 
-.graph-sidebar { width: 220px; flex-shrink: 0; border-right: 1px solid var(--neutral-40); padding: 1rem; display: flex; flex-direction: column; gap: 1rem; overflow-y: auto; }
-.graph-sidebar label { font-size: 12px; font-weight: 600; color: var(--neutral-60); text-transform: uppercase; letter-spacing: 0.04em; }
-.graph-sidebar input[type="range"] { width: 100%; accent-color: var(--primary); }
-.graph-sidebar .limit-value { font-size: 14px; font-family: var(--mono-font); color: var(--neutral-100); }
-.graph-sidebar .range-row { display: flex; gap: 0.3rem; }
-.graph-sidebar .range-row select { flex: 1; border: 1px solid var(--neutral-40); padding: 0.25rem 0.3rem; font-size: 12px; font-family: var(--mono-font); background: var(--neutral-0); color: var(--neutral-100); border-radius: 4px; }
-.graph-sidebar button { border: 1px solid var(--neutral-40); padding: 0.35rem 0.7rem; font-size: 13px; font-family: var(--mono-font); background: var(--neutral-0); cursor: pointer; color: var(--neutral-100); border-radius: 4px; transition: all 0.15s; }
-.graph-sidebar button:hover { background: var(--neutral-20); border-color: var(--neutral-60); }
-.sidebar-info { font-size: 12px; color: var(--neutral-60); line-height: 1.6; }
+.graph-sidebar { width: var(--sidebar-w); flex-shrink: 0; border-right: 1px solid var(--neutral-40); padding: 1rem; display: flex; flex-direction: column; gap: 1rem; overflow-y: auto; position: sticky; top: calc(50px + 1rem); max-height: calc(100vh - 50px - 2rem); }
+.filter-label { font-size: 14px; color: var(--neutral-60); margin: 0.5rem 0 0.2rem 0; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
+.filter-row-sb { display: flex; flex-direction: column; gap: 0.4rem; }
+.filter-row-sb select { width: 100%; border: 1px solid var(--neutral-40); padding: 0.35rem 0.5rem; font-size: 14px; font-family: var(--mono-font); background: var(--neutral-0); outline: none; color: var(--neutral-100); }
+.filter-row-sb select:focus { border-color: var(--neutral-80); }
+.range-row { display: flex; gap: 0.4rem; }
+.range-row select { flex: 1; border: 1px solid var(--neutral-40); padding: 0.35rem 0.5rem; font-size: 14px; font-family: var(--mono-font); background: var(--neutral-0); outline: none; color: var(--neutral-100); }
+.range-row select:focus { border-color: var(--neutral-80); }
+.sb-actions { display: flex; gap: 0.4rem; margin-top: 0.4rem; }
+.btn { border: 1px solid var(--neutral-40); padding: 0.4rem 1.2rem; font-size: 14px; font-family: var(--mono-font); background: var(--neutral-0); cursor: pointer; transition: all 0.15s; color: var(--neutral-100); flex: 1; text-align: center; }
+.btn:hover { border-color: var(--neutral-80); background: var(--neutral-20); }
+.btn-primary { background: var(--neutral-100); color: var(--neutral-0); border-color: var(--neutral-100); }
+.btn-primary:hover { background: var(--neutral-80); border-color: var(--neutral-80); }
 .sidebar-tip { font-size: 11px; color: var(--neutral-60); font-style: italic; }
 
 .graph-container { position: relative; flex: 1; min-height: 0; overflow: hidden; background: var(--neutral-20); }
@@ -81,7 +92,8 @@ body { display: flex; flex-direction: column; }
 .graph-legend-overlay { position: absolute; bottom: 0.8rem; left: 0.8rem; display: flex; gap: 0.8rem; flex-wrap: wrap; z-index: 10; font-size: 12px; font-family: var(--mono-font); background: var(--neutral-0); padding: 0.4rem 0.8rem; border-radius: 6px; border: 1px solid var(--neutral-40); }
 .legend-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 0.3rem; }
 
-.node-label { font-size: 10px; font-family: var(--mono-font); pointer-events: none; }
+.node-label { font-size: 10px; font-family: var(--mono-font); pointer-events: none; fill:#555; }
+[data-theme="dark"] .node-label { fill:#ccc; }
 .focus-ring { animation: spin-dash 2.5s linear infinite; }
 @keyframes spin-dash { to { stroke-dashoffset: -14; } }
 .tooltip { position: absolute; padding: 0.5rem 0.8rem; background: var(--neutral-0); border: 1px solid var(--neutral-40); border-radius: 6px; font-size: 13px; font-family: var(--body-font); pointer-events: none; box-shadow: 0 4px 12px rgba(0,0,0,0.1); z-index: 20; max-width: 280px; transition: opacity 0.15s; }
@@ -101,100 +113,55 @@ body { display: flex; flex-direction: column; }
 </head>
 <body>
 
-<header class="c-header">
-<div class="c-header__content">
-    <div class="c-header__left">
-        <div class="c-main-logo">
-            <a href="/">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 40" fill="none">
-                    <text x="0" y="30" font-family="'Work Sans',sans-serif" font-weight="700" font-size="20" fill="currentColor">Mapa de proyectos audiovisuales</text>
-                </svg>
-            </a>
-        </div>
-    </div>
-    <div class="c-header__right">
-        <nav class="c-header__nav">
-            <a href="/">Proyectos</a>
-            <a href="/graph" class="active">Grafo</a>
-            <a href="/dashboard">Dashboard</a>
-        </nav>
-        <button type="button" class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle dark mode">
-            <i class="fa-regular fa-sun icon-sun"></i>
-            <i class="fa-regular fa-moon icon-moon"></i>
-        </button>
-    </div>
-</div>
-</header>
+{% include '_navbar.html' %}
 
 <div class="page-wrap">
 <div class="page-content">
 
 <aside class="graph-sidebar">
-    <div>
-        <label for="f-limit">Proyectos</label>
-        <input type="range" id="f-limit" min="20" max="400" value="150" step="10" oninput="document.getElementById('limit-display').textContent=this.value">
-        <span class="limit-value" id="limit-display">150</span>
+    <div class="filter-label">Edición</div>
+    <div class="range-row">
+        <select id="yf">
+            <option value="">Desde</option>
+            {% for a in anios %}
+            <option value="{{ a }}">{{ a }}</option>
+            {% endfor %}
+        </select>
+        <select id="yt">
+            <option value="">Hasta</option>
+            {% for a in anios %}
+            <option value="{{ a }}">{{ a }}</option>
+            {% endfor %}
+        </select>
     </div>
 
-    <div>
-        <label>Edición</label>
-        <div class="range-row">
-            <select id="yf">
-                <option value="">Desde</option>
-                {% for a in anios %}
-                <option value="{{ a }}">{{ a }}</option>
-                {% endfor %}
-            </select>
-            <select id="yt">
-                <option value="">Hasta</option>
-                {% for a in anios %}
-                <option value="{{ a }}">{{ a }}</option>
-                {% endfor %}
-            </select>
-        </div>
+    <div class="filter-label" style="margin-top:0.5rem">Estímulo</div>
+    <div class="filter-row-sb">
+        <select id="f-linea">
+            <option value="">Todos</option>
+            {% for l in lineas %}
+            <option value="{{ l }}">{{ l }} — {{ lineas_dict[l] }}</option>
+            {% endfor %}
+        </select>
     </div>
 
-    <button onclick="loadGraph()">Actualizar</button>
+    <div class="sb-actions">
+        <button class="btn btn-primary" onclick="loadGraph()">Actualizar</button>
+    </div>
     <div class="sidebar-tip">Hover sobre un nodo para ver conexiones</div>
 </aside>
 
 <div class="graph-container" id="graph-container">
     <svg id="graph-svg"></svg>
     <div class="graph-legend-overlay">
-        <span><span class="legend-dot" style="background:#FF9800;"></span>Estímulo</span>
-        <span><span class="legend-dot" style="background:#4CAF50;"></span>Región</span>
-        <span><span class="legend-dot" style="background:#E80247;"></span>Proyecto</span>
-        <span><span class="legend-dot" style="background:#2D7D9A;"></span>Persona</span>
+        <span><span class="legend-dot" style="background:#E57373;"></span>Proyecto</span>
+        <span><span class="legend-dot" style="background:#64B5F6;"></span>Persona</span>
+        <span><span class="legend-dot" style="background:#FFB74D;"></span>Estímulo</span>
+        <span><span class="legend-dot" style="background:#81C784;"></span>Región</span>
     </div>
 </div>
 
 </div> <!-- /page-content -->
-<footer class="footer">
-<div class="wrap">
-    <div class="footer-grid">
-        <div>
-            <h4>Mapa de proyectos audiovisuales</h4>
-            <p>Estímulos Económicos del Ministerio</p>
-            <p>de Cultura del Perú</p>
-            <p class="dim">Solo lectura</p>
-        </div>
-        <div>
-            <h5>Explore the website</h5>
-            <p><a href="/">Proyectos</a> · <a href="/timeline">Timeline</a> · <a href="/graph">Grafo</a> · <a href="/dashboard">Dashboard</a> · <a href="/mapa">Mapa</a></p>
-        </div>
-        <div>
-            <h5>Database</h5>
-            <p>{{ total_db }} proyectos</p>
-            <p>{{ monto_db }} otorgados</p>
-            <p class="dim">SQLite · 14 tablas</p>
-        </div>
-    </div>
-    <div class="footer-bottom">
-        Powered by Flask · Datos DAFO · D3.js
-    </div>
-</div>
-</footer>
-
 </div> <!-- /page-wrap -->
 
 <div class="tooltip hidden" id="tooltip"></div>
@@ -208,7 +175,6 @@ body { display: flex; flex-direction: column; }
       <tr><td>Monto</td><td id="modal-monto"></td></tr>
       <tr><td>Estímulo</td><td id="modal-linea"></td></tr>
       <tr><td>Persona</td><td id="modal-persona"></td></tr>
-      <tr><td>Región</td><td id="modal-region"></td></tr>
     </table>
     <span class="modal-link" id="modal-link" onclick="modalSearch()">Ver en Proyectos &rarr;</span>
   </div>
@@ -252,13 +218,11 @@ function showProjectModal(n) {
     var conn = getConnected(n.id);
     var lineaNode = conn.find(function(c) { return c.group === 'linea'; });
     var personaNode = conn.find(function(c) { return c.group === 'persona'; });
-    var regionNode = conn.find(function(c) { return c.group === 'region'; });
     document.getElementById('modal-title').textContent = n.label;
     document.getElementById('modal-anio').textContent = n.anio || '—';
     document.getElementById('modal-monto').textContent = n.monto ? 'S/ ' + Number(n.monto).toLocaleString() : '—';
     document.getElementById('modal-linea').textContent = lineaNode ? lineaNode.label : '—';
     document.getElementById('modal-persona').textContent = personaNode ? personaNode.label : '—';
-    document.getElementById('modal-region').textContent = regionNode ? regionNode.label : '—';
     modalProjectKey = n.key;
     modal.classList.add('active');
 }
@@ -275,12 +239,12 @@ function modalSearch() {
     closeModal();
 }
 
-var GROUP_COLORS = { proyecto: '#E80247', persona: '#2D7D9A', region: '#4CAF50', linea: '#FF9800' };
+var GROUP_COLORS = { proyecto: '#E57373', persona: '#64B5F6', linea: '#FFB74D', region: '#81C784' };
 var GROUP_PROPS = {
-    linea:   { r: 18, opacity: 1,   hoverOpacity: 1,   labelOpacity: 1,   charge: -300 },
-    region:  { r: 16, opacity: 0.9, hoverOpacity: 0.9, labelOpacity: 1,   charge: -250 },
-    proyecto:{ r: 5,  opacity: 0.04, hoverOpacity: 0.8, labelOpacity: 0,   charge: -40  },
-    persona: { r: 4,  opacity: 0.04, hoverOpacity: 0.6, labelOpacity: 0,   charge: -30  }
+    linea:   { r: 16, opacity: 0.9, hoverOpacity: 0.9, labelOpacity: 1,   charge: -200 },
+    region:  { r: 14, opacity: 0.8, hoverOpacity: 0.8, labelOpacity: 1,   charge: -150 },
+    proyecto:{ r: 5,  opacity: 0.5, hoverOpacity: 0.9, labelOpacity: 0,   charge: -40  },
+    persona: { r: 4,  opacity: 0.4, hoverOpacity: 0.8, labelOpacity: 0,   charge: -30  }
 };
 
 var simulation, g, linkGroup, nodeGroup, labelGroup, focusRing;
@@ -327,7 +291,7 @@ function render() {
         .attr('r', function(n) { return GROUP_PROPS[n.group].r; })
         .attr('fill', function(n) { return GROUP_COLORS[n.group]; })
         .attr('stroke', isDark() ? '#222' : '#FFF')
-        .attr('stroke-width', function(n) { return n.group === 'linea' || n.group === 'region' ? 2 : 0.5; })
+        .attr('stroke-width', 0.5)
         .attr('opacity', function(n) { return GROUP_PROPS[n.group].opacity; })
         .attr('cursor', 'pointer')
         .call(d3.drag()
@@ -349,7 +313,6 @@ function render() {
     var labelEnter = label.enter().append('text')
         .text(function(n) { return n.label; })
         .attr('class', 'node-label')
-        .attr('fill', isDark() ? '#999' : '#555')
         .attr('dx', function(n) { return GROUP_PROPS[n.group].r + 4; })
         .attr('dy', 4)
         .attr('opacity', function(n) { return GROUP_PROPS[n.group].labelOpacity; })
@@ -446,14 +409,15 @@ function render() {
 }
 
 function loadGraph() {
-    var limit = document.getElementById('f-limit').value;
     var yf = document.getElementById('yf').value;
     var yt = document.getElementById('yt').value;
+    var linea = document.getElementById('f-linea').value;
     allNodes = [];
     allEdges = [];
-    var params = 'limit=' + limit;
+    var params = '';
     if (yf) params += '&yf=' + yf;
     if (yt) params += '&yt=' + yt;
+    if (linea) params += '&linea=' + encodeURIComponent(linea);
     fetch('/api/graph?' + params)
     .then(function(r) { return r.json(); })
     .then(function(d) {

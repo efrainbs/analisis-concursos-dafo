@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+<script src="https://d3js.org/d3.v7.min.js"></script>
 <script>
 (function() {
   var t = localStorage.getItem('dafo-theme');
@@ -33,24 +34,26 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { font-family: var(--body-font); background: var(--neutral-0); color: var(--neutral-100); -webkit-font-smoothing: antialiased; font-size: 100%; font-weight: 400; line-height: 1.5; overflow-x: hidden; }
 a { color: inherit; text-decoration: none; }
-.wrap { max-width: 90vw; margin: 0 auto; padding: 0 0.5rem; }
+.wrap { max-width: 90vw; margin: 0 auto; padding: 1.5rem 0.5rem; }
 .hidden { display: none !important; }
 input, select, textarea { border-radius: 4px; }
 button, .btn, .btn-primary { border-radius: 4px; }
 .search-row input[type="text"] { border-radius: 4px 0 0 4px; }
 .search-row input[type="submit"] { border-radius: 0 4px 4px 0; }
 
-.c-header { position: sticky; top: 0; z-index: 100; background: var(--neutral-0); }
-.c-header::after { content: ""; display: block; position: absolute; left: 0; right: 0; bottom: 0; height: 24px; background: linear-gradient(to bottom, var(--neutral-0), transparent); pointer-events: none; transform: translateY(100%); }
-.c-header__content { max-width: 90vw; margin: 0 auto; padding: 0 0.5rem; display: flex; align-items: center; justify-content: space-between; height: 50px; }
+.c-header { position: sticky; top: 0; z-index: 100; background: rgba(255,255,255,0.8); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); }
+[data-theme="dark"] .c-header { background:rgba(13,27,42,0.8); }
+.c-header::after { content: ""; display: block; position: absolute; left: 0; right: 0; bottom: 0; height: 32px; background: linear-gradient(to bottom, rgba(255,255,255,0.8), transparent); pointer-events: none; transform: translateY(100%); }
+[data-theme="dark"] .c-header::after { background: linear-gradient(to bottom, rgba(13,27,42,0.8), transparent); }
+.c-header__content { max-width: 90vw; margin: 0 auto; padding: 1.5rem 0.5rem; display: flex; align-items: center; justify-content: space-between; }
 .c-header__left { display: flex; align-items: center; gap: 2.5rem; }
 .c-main-logo { display: flex; align-items: center; }
 .c-main-logo svg { height: 28px; width: auto; }
 .c-header__right { display: flex; align-items: center; gap: 1rem; font-size: 14px; color: var(--neutral-60); }
-.c-header__right a { color: var(--neutral-60); transition: color 0.15s; }
+.c-header__right a { color: inherit; transition: color 0.15s; }
 .c-header__right a:hover { color: var(--neutral-100); }
 .c-header__nav { display: flex; gap: 1.5rem; font-size: 14px; }
-.c-header__nav a { color: var(--neutral-60); transition: color 0.15s; }
+.c-header__nav a { color: inherit; transition: color 0.15s; }
 .c-header__nav a:hover, .c-header__nav a.active { color: var(--neutral-100); font-weight: 600; }
 .c-header__lang { display: flex; align-items: center; gap: 0.4rem; }
 .c-header__lang .active-lang { color: var(--primary); font-weight: 600; }
@@ -109,9 +112,6 @@ button, .btn, .btn-primary { border-radius: 4px; }
     color: var(--neutral-60);
     padding-bottom: 0.2rem;
     border-bottom: 2px solid var(--neutral-40);
-}
-.c-loop-movie__header .col-vermas {
-    text-align: right;
 }
 .c-loop-movie-row {
     display: grid;
@@ -289,7 +289,8 @@ button, .btn, .btn-primary { border-radius: 4px; }
 .footer-bottom { text-align: center; margin-top: 1rem; border-top: 1px solid var(--footer-border); padding-top: 0.8rem; font-size: 14px; color: var(--neutral-80); }
 .theme-toggle { display: inline-flex; align-items: center; gap: 0.4rem; cursor: pointer; background: none; border: none; padding: 0.3rem; color: var(--neutral-60); font-size: 14px; font-family: var(--mono-font); transition: color 0.15s; }
 .theme-toggle:hover { color: var(--neutral-100); }
-.theme-toggle i { font-size: 16px; }
+.theme-toggle i { font-size: 24px; }
+.c-header__nav a { text-transform:uppercase; }
 [data-theme="dark"] .theme-toggle .icon-sun { display: inline; }
 [data-theme="dark"] .theme-toggle .icon-moon { display: none; }
 .theme-toggle .icon-sun { display: none; }
@@ -308,132 +309,134 @@ button, .btn, .btn-primary { border-radius: 4px; }
 .sidebar::-webkit-scrollbar { width: 4px; }
 .sidebar::-webkit-scrollbar-track { background: transparent; }
 .sidebar::-webkit-scrollbar-thumb { background: var(--neutral-40); border-radius: 2px; }
+
+/* GRAPH FULLSCREEN HERO */
+.graph-hero { position:relative; width:100%; height:100vh; overflow:hidden; background:var(--neutral-20); }
+.graph-hero .graph-inner { position:absolute; inset:0; }
+.graph-inner svg { width:100%; height:100%; display:block; }
+.graph-legend-overlay { position:absolute; bottom:2rem; left:50%; transform:translateX(-50%); display:flex; gap:0.8rem; flex-wrap:wrap; z-index:10; font-size:12px; font-family:var(--mono-font); background:rgba(180,180,180,0.4); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); padding:0.3rem 0.8rem; border-radius:6px; }
+[data-theme="dark"] .graph-legend-overlay { background:rgba(60,60,60,0.4); }
+.legend-item { display:inline-flex; align-items:center; gap:4px; }
+.legend-dot { display:inline-block; width:10px; height:10px; border-radius:50%; }
+.node-label { font-size:9px; font-family:var(--mono-font); pointer-events:none; fill:#555; }
+[data-theme="dark"] .node-label { fill:#ccc; }
+.graph-tooltip { position:fixed; padding:0.4rem 0.7rem; background:var(--neutral-0); border:1px solid var(--neutral-40); border-radius:6px; font-size:13px; font-family:var(--body-font); pointer-events:none; box-shadow:0 4px 12px rgba(0,0,0,0.1); z-index:300; opacity:0; transition:opacity 0.15s; }
+.graph-tooltip.show { opacity:1; }
+
+/* FILTER SIDEBAR OVERLAY ON GRAPH */
+.graph-sidebar { position:absolute; bottom:2rem; left:3vw; width:var(--sidebar-w); max-height:calc(100% - 50px); padding:1rem; overflow-y:auto; z-index:20; background:rgba(180,180,180,0.4); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); border-radius:6px; }
+.c-header__content { max-width:94vw; }
+[data-theme="dark"] .graph-sidebar { background:rgba(60,60,60,0.4); }
+.graph-sidebar .search-row input[type="text"],
+.graph-sidebar select,
+.graph-sidebar input[type="number"] { background:rgba(255,255,255,0.85); backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); }
+[data-theme="dark"] .graph-sidebar .search-row input[type="text"],
+[data-theme="dark"] .graph-sidebar select,
+[data-theme="dark"] .graph-sidebar input[type="number"] { background:rgba(13,27,42,0.85); }
+.graph-sidebar .page-title { margin-top:0.5rem; }
+.graph-sidebar .sidebar-tip { font-size:11px; color:var(--neutral-60); font-style:italic; margin-top:0.5rem; }
+/* NAVBAR OVER GRAPH */
+.c-header { background:rgba(255,255,255,0.8) !important; position:absolute !important; z-index:30 !important; width:100% !important; }
+[data-theme="dark"] .c-header { background:rgba(13,27,42,0.8) !important; }
+
+/* RESULTS TOGGLE PANEL */
+.results-wrapper { position:absolute; bottom:2rem; left:calc(3vw + var(--sidebar-w) + 1.5rem); right:3vw; z-index:24; }
+.results-toggle { position:absolute; bottom:100%; right:0; margin-bottom:4px; z-index:1; padding:0.5rem 1.2rem; background:var(--neutral-0); border:1px solid var(--neutral-40); border-radius:6px; font-size:14px; font-family:var(--mono-font); cursor:pointer; box-shadow:0 2px 8px rgba(0,0,0,0.1); transition:all 0.15s; color:var(--neutral-100); white-space:nowrap; }
+.results-toggle:hover { background:var(--neutral-20); }
+.results-panel { max-height:0; overflow:hidden; transition:max-height 0.4s ease; background:rgba(255,255,255,0.6); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); border-radius:8px 8px 0 0; }
+[data-theme="dark"] .results-panel { background:rgba(13,27,42,0.6); }
+.results-panel.open { max-height:70vh; overflow-y:auto; }
+.results-panel .content { padding:1rem; }
+
 </style>
 </head>
 <body>
 
-<header class="c-header">
-<div class="c-header__content">
-    <div class="c-header__left">
-        <div class="c-main-logo">
-            <a href="/" aria-label="Go to the home page">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 40" fill="none">
-                    <text x="0" y="30" font-family="'Work Sans',sans-serif" font-weight="700" font-size="20" fill="currentColor">Mapa de proyectos audiovisuales</text>
-                </svg>
-            </a>
-        </div>
-        <nav class="c-header__nav">
-            <a href="/" class="active">Proyectos</a>
-            <a href="/timeline">Timeline</a>
-            <a href="/graph">Grafo</a>
-            <a href="/dashboard">Dashboard</a>
-            <a href="/mapa">Mapa</a>
-        </nav>
+{% include '_navbar.html' %}
+<div class="graph-hero" id="graph-hero">
+    <div class="graph-inner"><svg id="graph-svg"></svg></div>
+    <div class="graph-legend-overlay">
+        <span class="legend-item"><span class="legend-dot" style="background:#E57373;"></span>Proyecto</span>
+        <span class="legend-item"><span class="legend-dot" style="background:#64B5F6;"></span>Persona</span>
+        <span class="legend-item"><span class="legend-dot" style="background:#FFB74D;"></span>Estímulo</span>
+        <span class="legend-item"><span class="legend-dot" style="background:#81C784;"></span>Región</span>
     </div>
-    <div class="c-header__right">
-        <button type="button" class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle dark mode" title="Cambiar modo claro/oscuro">
-            <i class="fa-regular fa-sun icon-sun"></i>
-            <i class="fa-regular fa-moon icon-moon"></i>
-        </button>
-        <div class="c-header__lang">
-            <span class="active-lang">es</span>
-
+    <!-- SIDEBAR OVERLAY -->
+    <aside class="graph-sidebar" id="sidebar">
+        <p class="search-label">Buscar</p>
+        <div class="search-row">
+            <input type="text" id="search-q" placeholder="Search" value="{{ q or '' }}" autocomplete="off">
+            <input type="submit" value="Buscar" onclick="applyFilters()">
         </div>
-    </div>
-</div>
-</header>
 
-<div class="wrap">
-    <div style="height:50vh;background:var(--neutral-30);margin:0 -9999rem 2rem;padding:0 9999rem;"></div>
-
-    <div class="layout">
-
-        <!-- SIDEBAR: FILTERS -->
-        <aside class="sidebar" id="sidebar">
-            <h1 class="page-title">Proyectos</h1>
-
-            <p class="search-label">Buscar</p>
-            <div class="search-row">
-                <input type="text" id="search-q" placeholder="Search" value="{{ q or '' }}" autocomplete="off">
-                <input type="submit" value="Buscar" onclick="applyFilters()">
-            </div>
-
-            <p class="filter-label">Edición</p>
-            <div class="filter-row-sb">
-                <div class="range-row">
-                    <label for="yf">Desde</label>
-                    <select id="yf">
-                        {% for a in anios %}
-                        <option value="{{ a }}" {{ 'selected' if yf == a }}>{{ a }}</option>
-                        {% endfor %}
-                    </select>
-                    <label for="yt">Hasta</label>
-                    <select id="yt">
-                        {% for a in anios %}
-                        <option value="{{ a }}" {{ 'selected' if yt == a }}>{{ a }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-            </div>
-
-            <p class="filter-label">Categoría</p>
-            <div class="filter-row-sb">
-                <select id="otf">
-                    <option value="">Todas</option>
-                    {% for t in obra_tipos %}
-                    <option value="{{ t }}" {{ 'selected' if t in otf and otf|length == 1 }}>{{ obra_tipo_labels.get(t, t) }}</option>
+        <p class="filter-label">Edición</p>
+        <div class="filter-row-sb">
+            <div class="range-row">
+                <label for="yf">Desde</label>
+                <select id="yf">
+                    {% for a in anios %}
+                    <option value="{{ a }}" {{ 'selected' if yf == a }}>{{ a }}</option>
+                    {% endfor %}
+                </select>
+                <label for="yt">Hasta</label>
+                <select id="yt">
+                    {% for a in anios %}
+                    <option value="{{ a }}" {{ 'selected' if yt == a }}>{{ a }}</option>
                     {% endfor %}
                 </select>
             </div>
+        </div>
 
-            <p class="filter-label">Tipo persona</p>
-            <div class="filter-row-sb">
-                <select id="tp">
-                    <option value="">Todas</option>
-                    <option value="natural" {{ 'selected' if tp == 'natural' }}>Natural</option>
-                    <option value="juridica" {{ 'selected' if tp == 'juridica' }}>Jurídica</option>
-                </select>
-            </div>
+        <p class="filter-label">Categoría</p>
+        <div class="filter-row-sb">
+            <select id="otf">
+                <option value="">Todas</option>
+                {% for t in obra_tipos %}
+                <option value="{{ t }}" {{ 'selected' if t in otf and otf|length == 1 }}>{{ obra_tipo_labels.get(t, t) }}</option>
+                {% endfor %}
+            </select>
+        </div>
 
-            <p class="filter-label">Estímulo</p>
-            <div class="filter-row-sb">
-                <select id="la">
-                    <option value="">Todos</option>
-                    {% for l in lineas %}
-                    <option value="{{ l }}" {{ 'selected' if l in la and la|length == 1 }}>{{ lineas_dict.get(l, l) }}</option>
-                    {% endfor %}
-                </select>
-            </div>
+        <p class="filter-label">Tipo persona</p>
+        <div class="filter-row-sb">
+            <select id="tp">
+                <option value="">Todas</option>
+                <option value="natural" {{ 'selected' if tp == 'natural' }}>Natural</option>
+                <option value="juridica" {{ 'selected' if tp == 'juridica' }}>Jurídica</option>
+            </select>
+        </div>
 
-            <p class="filter-label">Región</p>
-            <div class="filter-row-sb">
-                <select id="rf">
-                    <option value="">Todas</option>
-                    {% for r in regiones %}
-                    <option value="{{ r }}" {{ 'selected' if r in rf and rf|length == 1 }}>{{ r }}</option>
-                    {% endfor %}
-                </select>
-            </div>
+        <p class="filter-label">Estímulo</p>
+        <div class="filter-row-sb">
+            <select id="la">
+                <option value="">Todos</option>
+                {% for l in lineas %}
+                <option value="{{ l }}" {{ 'selected' if l in la and la|length == 1 }}>{{ lineas_dict.get(l, l) }}</option>
+                {% endfor %}
+            </select>
+        </div>
 
-            <p class="filter-label">Monto (S/)</p>
-            <div class="filter-row-sb">
-                <div class="range-row">
-                    <label for="mmn">Mín</label>
-                    <input type="number" id="mmn" value="{{ mmn }}" min="0" step="10000" placeholder="0">
-                    <label for="mm">Máx</label>
-                    <input type="number" id="mm" value="{{ mm }}" min="0" step="10000" placeholder="999,999,999">
-                </div>
-            </div>
+        <p class="filter-label">Región</p>
+        <div class="filter-row-sb">
+            <select id="rf">
+                <option value="">Todas</option>
+                {% for r in regiones %}
+                <option value="{{ r }}" {{ 'selected' if r in rf and rf|length == 1 }}>{{ r }}</option>
+                {% endfor %}
+            </select>
+        </div>
 
-            <div class="sb-actions">
-                <button type="button" class="btn btn-primary" onclick="applyFilters()">Aplicar</button>
-                <button type="button" class="btn" onclick="resetFilters()">Reset</button>
-            </div>
 
-        </aside>
+        <div class="sb-actions">
+            <button type="button" class="btn btn-primary" onclick="applyFilters()">Aplicar</button>
+            <button type="button" class="btn" onclick="resetFilters()">Reset</button>
+        </div>
+    </aside>
 
-        <!-- CONTENT: RESULTS -->
-        <main class="content">
+    <div class="results-wrapper">
+        <button class="results-toggle" id="resultsToggle" onclick="toggleResults()">Ver resultados</button>
+        <div class="results-panel" id="resultsPanel">
+        <main class="content" style="margin-left:0;flex:1;">
 
             <p class="results-count" id="result-count">
                 <strong id="proj-count">0</strong> resultados
@@ -444,7 +447,7 @@ button, .btn, .btn-primary { border-radius: 4px; }
                     <span>Título</span>
                     <span>Estímulo</span>
                     <span>Persona</span>
-                    <span class="col-vermas">Ver más</span>
+                    <span>Año</span>
                 </div>
                 <div id="results-list"></div>
             </div>
@@ -464,9 +467,11 @@ button, .btn, .btn-primary { border-radius: 4px; }
             </div>
 
         </main>
-
     </div>
 </div>
+</div>
+
+<div class="graph-tooltip" id="graph-tooltip"></div>
 
 <div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
     <div class="modal" id="modal">
@@ -492,38 +497,18 @@ button, .btn, .btn-primary { border-radius: 4px; }
     </div>
 </div>
 
-<div class="footer">
-<div class="wrap">
-    <div class="footer-grid">
-        <div>
-            <h4>Mapa de proyectos audiovisuales</h4>
-            <p>Estímulos Económicos del Ministerio</p>
-            <p>de Cultura del Perú</p>
-            <p class="dim">Solo lectura</p>
-        </div>
-        <div>
-            <h5>Explore the website</h5>
-            <p><a href="/">Proyectos</a></p>
-            <p><a href="/timeline">Timeline</a> · <a href="/graph">Grafo</a> · <a href="/dashboard">Dashboard</a> · <a href="/mapa">Mapa</a></p>
-        </div>
-        <div>
-            <h5>Database</h5>
-            <p>{{ total_db }} proyectos</p>
-            <p>{{ monto_db }} otorgados</p>
-            <p class="dim">SQLite · 14 tablas</p>
-        </div>
-    </div>
-    <div class="footer-bottom">
-        Powered by Flask · Datos DAFO
-    </div>
-</div>
-</div>
-
 <script>
 var currentPage = 1;
 var totalPages = 1;
 var loading = false;
 var resultsData = [];
+
+function toggleResults() {
+    var panel = document.getElementById('resultsPanel');
+    var btn = document.getElementById('resultsToggle');
+    var isOpen = panel.classList.toggle('open');
+    btn.textContent = isOpen ? 'Ocultar resultados' : 'Ver resultados';
+}
 
 function toggleTheme() {
     var cur = document.documentElement.getAttribute('data-theme');
@@ -541,8 +526,6 @@ function getFilterParams() {
     var rf = document.getElementById('rf').value;
     var otf = document.getElementById('otf').value;
     var tp = document.getElementById('tp').value;
-    var mmn = document.getElementById('mmn').value;
-    var mm = document.getElementById('mm').value;
     if (q) params.set('q', q);
     if (yf) params.set('yf', yf);
     if (yt) params.set('yt', yt);
@@ -550,8 +533,10 @@ function getFilterParams() {
     if (rf) params.set('rf', rf);
     if (tp) params.set('tp', tp);
     if (otf) params.set('otf', otf);
-    if (mmn) params.set('mmn', mmn);
-    if (mm && mm != '999999999') params.set('mm', mm);
+    var mmnEl = document.getElementById('mmn');
+    if (mmnEl) { var mmnV = mmnEl.value; if (mmnV) params.set('mmn', mmnV); }
+    var mmEl = document.getElementById('mm');
+    if (mmEl) { var mmV = mmEl.value; if (mmV && mmV != '999999999') params.set('mm', mmV); }
     return params;
 }
 
@@ -563,7 +548,7 @@ function buildResultHTML(r) {
         + '<h3 class="c-loop-movie__title">' + escHtml(r.titulo) + '</h3>'
         + '<p class="c-loop-movie__field">' + escHtml(r.linea_nombre) + '</p>'
         + (r.linea === 'PDT' ? '' : '<p class="c-loop-movie__field">' + escHtml(r.persona) + ' <span style="color:var(--neutral-60);font-size:14px">(' + escHtml(r.tipo_label) + ')</span></p>')
-        + '<p class="c-loop-movie__field c-loop-movie__field--vermas"><span class="details-toggle" style="pointer-events:none"><span class="toggle-label">Ver más</span> <span class="toggle-icon">[+]</span></span></p>'
+        + '<p class="c-loop-movie__field">' + escHtml(r.anio) + '</p>'
         + '</div>';
 }
 
@@ -639,6 +624,10 @@ function applyFilters() {
     document.getElementById('pagination').innerHTML = '';
     refreshDropdowns();
     fetchSearch(1);
+    // Reload graph with same filters
+    if (ghSim) { ghSim.stop(); ghSim=null; }
+    ghInit();
+    ghLoad();
 }
 
 function resetFilters() {
@@ -649,8 +638,8 @@ function resetFilters() {
     document.getElementById('rf').value = '';
     document.getElementById('tp').value = '';
     document.getElementById('otf').value = '';
-    document.getElementById('mmn').value = '0';
-    document.getElementById('mm').value = '999999999';
+    var mmnR = document.getElementById('mmn'); if (mmnR) mmnR.value = '0';
+    var mmR = document.getElementById('mm'); if (mmR) mmR.value = '999999999';
     applyFilters();
 }
 
@@ -757,8 +746,165 @@ document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') closeModal(e);
 });
 
+// ── GRAPH HERO ──
+var GRP_COLORS = { proyecto:'#E57373', persona:'#64B5F6', linea:'#FFB74D', region:'#81C784' };
+var GRP_PROPS = {
+    linea:   { r:14, opacity:1.0, hoverOpacity:1.0, labelOpacity:1, charge:-200 },
+    region:  { r:12, opacity:0.95, hoverOpacity:0.95, labelOpacity:1, charge:-150 },
+    proyecto:{ r:4,  opacity:0.65, hoverOpacity:0.9,  labelOpacity:0, charge:-35  },
+    persona: { r:3,  opacity:0.55, hoverOpacity:0.8,  labelOpacity:0, charge:-25  }
+};
+var ghSvg = d3.select('#graph-svg');
+var ghContainer = document.getElementById('graph-hero');
+var ghTooltip = document.getElementById('graph-tooltip');
+var ghSim, ghG, ghLinkG, ghNodeG, ghLabelG, ghZoom, ghHighlight, ghZoomToFit;
+
+function ghInit() {
+    ghSvg.selectAll('*').remove();
+    ghSvg.on('click.resetZoom', null);
+    ghG = ghSvg.append('g');
+    ghZoom = d3.zoom().scaleExtent([0.2,8]).on('zoom', function(e) { ghG.attr('transform', e.transform); });
+    ghSvg.call(ghZoom);
+    ghLinkG = ghG.append('g');
+    ghNodeG = ghG.append('g');
+    ghLabelG = ghG.append('g');
+}
+
+function ghRender(nodes, edges) {
+    if (!nodes.length) return;
+    var w = window.innerWidth, h = ghContainer.clientHeight;
+
+    var link = ghLinkG.selectAll('line').data(edges);
+    link.exit().remove();
+    link = link.enter().append('line').attr('stroke','#888').attr('stroke-width',0.5).attr('stroke-opacity',0.15).merge(link);
+
+    var node = ghNodeG.selectAll('circle').data(nodes, function(n){return n.key});
+    node.exit().remove();
+    var nodeEnter = node.enter().append('circle')
+        .attr('r', function(n){return GRP_PROPS[n.group].r})
+        .attr('fill', function(n){return GRP_COLORS[n.group]})
+        .attr('stroke','#FFF').attr('stroke-width',0.5)
+        .attr('opacity', function(n){return GRP_PROPS[n.group].opacity})
+        .attr('cursor','pointer');
+    node = nodeEnter.merge(node);
+
+    node.call(d3.drag()
+        .on('start', function(e, n) { if (!e.active) ghSim.alphaTarget(0.3).restart(); n.fx = n.x; n.fy = n.y; })
+        .on('drag', function(e, n) { n.fx = e.x; n.fy = e.y; })
+        .on('end', function(e, n) { if (!e.active) ghSim.alphaTarget(0); n.fx = null; n.fy = null; })
+    );
+
+    var label = ghLabelG.selectAll('text').data(nodes, function(n){return n.key});
+    label.exit().remove();
+    label = label.enter().append('text').text(function(n){return n.label})
+        .attr('class','node-label')
+        .attr('dx',function(n){return GRP_PROPS[n.group].r+3}).attr('dy',3)
+        .attr('opacity',function(n){return GRP_PROPS[n.group].labelOpacity})
+        .merge(label);
+
+    function highlight(nid) {
+        ghHighlight = highlight;
+        var connected = new Set();
+        if (nid) {
+            edges.forEach(function(e){
+                var s=typeof e.source==='object'?e.source.id:e.source;
+                var t=typeof e.target==='object'?e.target.id:e.target;
+                if (s===nid) connected.add(t);
+                if (t===nid) connected.add(s);
+            });
+            connected.add(nid);
+        }
+        node.attr('opacity', function(n){
+            if (!nid) return GRP_PROPS[n.group].opacity;
+            return connected.has(n.id) ? GRP_PROPS[n.group].hoverOpacity : 0.02;
+        });
+        label.attr('opacity', function(n){
+            if (!nid) return GRP_PROPS[n.group].labelOpacity;
+            return connected.has(n.id) ? 0.9 : 0;
+        });
+        link.attr('stroke-opacity', function(e){
+            if (!nid) return 0.15;
+            var s=typeof e.source==='object'?e.source.id:e.source;
+            var t=typeof e.target==='object'?e.target.id:e.target;
+            return (s===nid||t===nid) ? 0.5 : 0.01;
+        });
+    }
+
+    function zoomToConnected(nid) {
+        if (!nid) {
+            var pts = [];
+            node.each(function(n) { pts.push([n.x, n.y]); });
+            if (!pts.length) return;
+            var x0 = d3.min(pts, function(p){return p[0]}),
+                y0 = d3.min(pts, function(p){return p[1]}),
+                x1 = d3.max(pts, function(p){return p[0]}),
+                y1 = d3.max(pts, function(p){return p[1]});
+            var pad = 60;
+            var bw = x1 - x0 + pad * 2, bh = y1 - y0 + pad * 2;
+            var cw = ghContainer.clientWidth, ch = ghContainer.clientHeight;
+            var s = Math.min(cw / bw, ch / bh, 2);
+            var tx = cw / 2 - (x0 + x1) / 2 * s, ty = ch / 2 - (y0 + y1) / 2 * s;
+            ghSvg.transition().duration(400).call(ghZoom.transform, d3.zoomIdentity.translate(tx, ty).scale(s));
+            return;
+        }
+        var cx, cy;
+        node.each(function(n) { if (n.id === nid) { cx = n.x; cy = n.y; } });
+        if (cx === undefined) return;
+        var s = 3.5;
+        var tx = ghContainer.clientWidth / 2 - cx * s;
+        var ty = ghContainer.clientHeight / 2 - cy * s;
+        ghSvg.transition().duration(400).call(ghZoom.transform, d3.zoomIdentity.translate(tx, ty).scale(s));
+    }
+    ghZoomToFit = function() { zoomToConnected(null); };
+
+    node.on('mouseover',function(e,n){ highlight(n.id); })
+        .on('mouseout',function(){ highlight(null); });
+
+    node.on('click',function(e,n){
+        e.stopPropagation();
+        if (n.group==='proyecto') {
+            document.getElementById('search-q').value = n.label;
+            applyFilters();
+        } else {
+            ghTooltip.textContent = n.label;
+            ghTooltip.classList.add('show');
+            ghTooltip.style.left=(e.clientX+12)+'px'; ghTooltip.style.top=(e.clientY-12)+'px';
+            setTimeout(function(){ ghTooltip.classList.remove('show'); },2000);
+        }
+    });
+
+    ghSim = d3.forceSimulation(nodes)
+        .force('link', d3.forceLink(edges).id(function(n){return n.id}).distance(50).strength(0.1))
+        .force('charge', d3.forceManyBody().strength(-80))
+        .force('center', d3.forceCenter(w/2, h/2))
+        .on('tick', function(){
+            link.attr('x1',function(l){return l.source.x}).attr('y1',function(l){return l.source.y})
+                .attr('x2',function(l){return l.target.x}).attr('y2',function(l){return l.target.y});
+            node.attr('cx',function(n){return n.x}).attr('cy',function(n){return n.y});
+            label.attr('x',function(n){return n.x}).attr('y',function(n){return n.y});
+        });
+}
+
+function ghLoad() {
+    var q = getFilterParams();
+    var url = '/api/graph?' + q.toString() + '&limit=300';
+    fetch(url)
+    .then(function(r){return r.json()})
+    .then(function(d){
+        ghRender(d.nodes||[], d.edges||[]);
+    });
+}
+
+ghInit();
+ghLoad();
+window.addEventListener('resize', function(){
+    if (ghSim) { ghSim.stop(); ghSim=null; }
+    ghInit();
+    ghLoad();
+});
+
 document.addEventListener('DOMContentLoaded', function() {
-    var filterIds = ['search-q', 'yf', 'yt', 'otf', 'la', 'rf', 'tp', 'mmn', 'mm'];
+    var filterIds = ['search-q', 'yf', 'yt', 'otf', 'la', 'rf', 'tp'];
     filterIds.forEach(function(id) {
         var el = document.getElementById(id);
         if (!el) return;
@@ -770,6 +916,21 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            resetFilters();
+        }
+    });
+
+    setTimeout(function() {
+        var svgEl = document.getElementById('graph-svg');
+        if (svgEl) {
+            svgEl.addEventListener('click', function(e) {
+                resetFilters();
+            });
+        }
+    }, 100);
 
     refreshDropdowns();
     applyFilters();

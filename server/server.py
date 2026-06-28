@@ -128,6 +128,7 @@ def index():
 
     return render_template(
         "index.html",
+        active_page="proyectos",
         anios=anios_list,
         lineas=lineas_list,
         lineas_dict=lineas_dict,
@@ -431,6 +432,7 @@ def dashboard():
 
     return render_template(
         "dashboard.html",
+        active_page="dashboard",
         anios=anios_list,
         lineas=lineas_list,
         lineas_dict=lineas_dict,
@@ -750,6 +752,7 @@ def mapa():
 
     return render_template(
         "mapa.html",
+        active_page="mapa",
         anios=anios_list,
         lineas=lineas_list,
         lineas_dict=lineas_dict,
@@ -937,22 +940,52 @@ def api_graph():
 
         return jsonify({"nodes": nodes, "edges": edges})
 
-    # fallback: original all-at-once mode
-    limit = min(int(request.args.get("limit", 200)), 500)
+    # fallback: all-at-once mode
+    limit = min(int(request.args.get("limit", 300)), 500)
     yf = request.args.get("yf", "")
     yt = request.args.get("yt", "")
+    linea = request.args.get("la", "")
+    region = request.args.get("rf", "")
+    tp = request.args.get("tp", "")
+    otf = request.args.get("otf", "")
+    mmn = request.args.get("mmn", "")
+    mm = request.args.get("mm", "")
+    q = request.args.get("q", "").strip()
     groups_filter = request.args.get("groups", "")
-    allowed = set(groups_filter.split(",")) if groups_filter else {"proyecto", "persona", "region", "linea"}
-    where_extra = ""
+    allowed = set(groups_filter.split(",")) if groups_filter else {"proyecto", "persona", "linea", "region"}
+    clauses = ["p.estado = 'beneficiario'", "cv.anio > 0"]
     params = []
     if yf:
-        where_extra += " AND cv.anio >= ?"
+        clauses.append("cv.anio >= ?")
         params.append(int(yf))
     if yt:
-        where_extra += " AND cv.anio <= ?"
+        clauses.append("cv.anio <= ?")
         params.append(int(yt))
+    if linea:
+        clauses.append("lc.codigo = ?")
+        params.append(linea)
+    if region:
+        clauses.append("pe.region = ?")
+        params.append(region)
+    if tp == "natural":
+        clauses.append("pe.tipo = 'natural'")
+    elif tp == "juridica":
+        clauses.append("pe.tipo = 'juridica'")
+    if otf:
+        clauses.append("ob.tipo = ?")
+        params.append(otf)
+    if mmn:
+        clauses.append("p.monto_otorgado >= ?")
+        params.append(int(mmn))
+    if mm:
+        clauses.append("p.monto_otorgado <= ?")
+        params.append(int(mm))
+    if q:
+        clauses.append("(ob.titulo LIKE ? OR pe.razon_social LIKE ? OR pe.nombres || ' ' || pe.apellidos LIKE ?)")
+        like = f"%{q}%"
+        params.extend([like, like, like])
     params.append(limit)
-    rows = query("""
+    rows = query(f"""
         SELECT p.id, ob.titulo, p.monto_otorgado as monto, cv.anio,
                lc.codigo as linea_codigo, lc.nombre_canonico as linea_nombre,
                pe.id as persona_id, pe.razon_social, pe.nombres, pe.apellidos,
@@ -964,8 +997,7 @@ def api_graph():
         JOIN convocatoria cv ON ca.convocatoria_id = cv.id
         LEFT JOIN obra ob ON p.obra_id = ob.id
         LEFT JOIN persona pe ON p.persona_beneficiaria_id = pe.id
-        WHERE p.estado = 'beneficiario' AND cv.anio > 0
-    """ + where_extra + """
+        WHERE {" AND ".join(clauses)}
         ORDER BY cv.anio DESC, p.monto_otorgado DESC
         LIMIT ?
     """, params)
@@ -986,6 +1018,7 @@ def graph():
 
     return render_template(
         "graph.html",
+        active_page="graph",
         anios=anios_list,
         lineas=lineas_list,
         lineas_dict=lineas_dict,
@@ -1009,6 +1042,7 @@ def timeline():
 
     return render_template(
         "timeline.html",
+        active_page="timeline",
         anios=anios_list,
         lineas=lineas_list,
         lineas_dict=lineas_dict,

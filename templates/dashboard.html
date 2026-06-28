@@ -23,6 +23,7 @@
   --neutral-0: #FFF; --primary: #E80247;
   --footer-bg: #0D1B2A; --footer-border: #2E3A47;
   --body-font: 'Work Sans', sans-serif; --mono-font: 'IBM Plex Mono', monospace;
+  --sidebar-w: 320px;
 }
 [data-theme="dark"] {
   --neutral-100: #FFF; --neutral-80: #BBBFC3; --neutral-60: #92989F;
@@ -33,25 +34,28 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { font-family: var(--body-font); background: var(--neutral-0); color: var(--neutral-100); -webkit-font-smoothing: antialiased; font-size: 100%; font-weight: 400; line-height: 1.5; overflow-x: hidden; }
 a { color: inherit; text-decoration: none; }
-.wrap { max-width: 90vw; margin: 0 auto; padding: 0 0.5rem; }
+.wrap { max-width: 90vw; margin: 0 auto; padding: 1.5rem 0.5rem; }
 .hidden { display: none !important; }
 input, select, textarea, button, .btn { border-radius: 4px; }
-.dash-layout { display: flex; gap: 2rem; align-items: flex-start; }
-.dash-sidebar { width: 320px; min-width: 320px; position: sticky; top: 60px; max-height: calc(100vh - 70px); overflow-y: auto; padding: 0.5rem 0 1rem 0; }
-.dash-sidebar::-webkit-scrollbar { width: 4px; }
-.dash-sidebar::-webkit-scrollbar-thumb { background: var(--neutral-40); border-radius: 2px; }
-.dash-main { flex: 1; min-width: 0; }
-.c-header { position: sticky; top: 0; z-index: 100; background: var(--neutral-0); }
-.c-header::after { content: ""; display: block; position: absolute; left: 0; right: 0; bottom: 0; height: 24px; background: linear-gradient(to bottom, var(--neutral-0), transparent); pointer-events: none; transform: translateY(100%); }
-.c-header__content { max-width: 90vw; margin: 0 auto; padding: 0 0.5rem; display: flex; align-items: center; justify-content: space-between; height: 50px; }
+.layout { display: flex; gap: 2.5rem; align-items: flex-start; }
+.sidebar { width: var(--sidebar-w); flex-shrink: 0; position: sticky; top: calc(50px + 1rem); max-height: calc(100vh - 50px - 2rem); overflow-y: auto; }
+.sidebar::-webkit-scrollbar { width: 4px; }
+.sidebar::-webkit-scrollbar-track { background: transparent; }
+.sidebar::-webkit-scrollbar-thumb { background: var(--neutral-40); border-radius: 2px; }
+.content { flex: 1; min-width: 0; }
+.c-header { position: sticky; top: 0; z-index: 100; background: rgba(255,255,255,0.8); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); }
+[data-theme="dark"] .c-header { background:rgba(13,27,42,0.8); }
+.c-header::after { content: ""; display: block; position: absolute; left: 0; right: 0; bottom: 0; height: 32px; background: linear-gradient(to bottom, rgba(255,255,255,0.8), transparent); pointer-events: none; transform: translateY(100%); }
+[data-theme="dark"] .c-header::after { background: linear-gradient(to bottom, rgba(13,27,42,0.8), transparent); }
+.c-header__content { max-width: 90vw; margin: 0 auto; padding: 1.5rem 0.5rem; display: flex; align-items: center; justify-content: space-between; }
 .c-header__left { display: flex; align-items: center; gap: 2.5rem; }
 .c-main-logo { display: flex; align-items: center; }
 .c-main-logo svg { height: 28px; width: auto; }
 .c-header__right { display: flex; align-items: center; gap: 1rem; font-size: 14px; color: var(--neutral-60); }
-.c-header__right a { color: var(--neutral-60); transition: color 0.15s; }
+.c-header__right a { color: inherit; transition: color 0.15s; }
 .c-header__right a:hover { color: var(--neutral-100); }
 .c-header__nav { display: flex; gap: 1.5rem; font-size: 14px; }
-.c-header__nav a { color: var(--neutral-60); transition: color 0.15s; }
+.c-header__nav a { color: inherit; transition: color 0.15s; }
 .c-header__nav a:hover, .c-header__nav a.active { color: var(--neutral-100); font-weight: 600; }
 .c-header__lang { display: flex; align-items: center; gap: 0.4rem; }
 .c-header__lang .active-lang { color: var(--primary); font-weight: 600; }
@@ -59,14 +63,14 @@ input, select, textarea, button, .btn { border-radius: 4px; }
 .page-title { font-family: var(--body-font); font-size: 32px; font-weight: 600; color: var(--neutral-100); margin: 0 0 0.75rem 0; letter-spacing: -0.01em; line-height: 1.1; text-transform: uppercase; }
 .sidebar-section { margin-bottom: 1rem; }
 .sidebar-section h3 { font-size: 13px; color: var(--neutral-60); margin: 0 0 0.5rem 0; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; font-family: var(--mono-font); }
-.filter-label { font-size: 14px; color: var(--neutral-60); margin: 0.5rem 0 0.25rem 0; }
-.filter-row { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
-.filter-row label { font-size: 14px; color: var(--neutral-60); }
-.filter-row select { border: 1px solid var(--neutral-40); padding: 0.4rem 0.6rem; font-size: 14px; font-family: var(--mono-font); background: var(--neutral-0); outline: none; cursor: pointer; min-width: 90px; color: var(--neutral-100); }
-.filter-row select:focus { border-color: var(--neutral-80); }
+.filter-label { font-size: 14px; color: var(--neutral-60); margin: 0.5rem 0 0.2rem 0; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
+.filter-row-sb { display: flex; flex-direction: column; gap: 0.4rem; }
+.filter-row-sb label { font-size: 14px; color: var(--neutral-60); font-family: var(--mono-font); }
+.filter-row-sb select, .filter-row-sb input { width: 100%; border: 1px solid var(--neutral-40); padding: 0.35rem 0.5rem; font-size: 14px; font-family: var(--mono-font); background: var(--neutral-0); outline: none; color: var(--neutral-100); }
+.filter-row-sb select:focus, .filter-row-sb input:focus { border-color: var(--neutral-80); }
 .adv-toggle { font-size: 14px; color: var(--neutral-60); cursor: pointer; margin: 0.6rem 0; display: inline-block; background: none; border: none; padding: 0; border-bottom: 1px dotted var(--neutral-40); font-family: var(--body-font); }
 .adv-toggle:hover { color: var(--neutral-100); border-bottom-color: var(--neutral-60); }
-.adv-box { border: 1px solid var(--neutral-40); padding: 1.5rem; margin: 0.5rem 0 1rem 0; background: var(--neutral-20); }
+.adv-box { padding: 1.5rem; margin: 0.5rem 0 1rem 0; background: var(--neutral-20); }
 .adv-box-title { font-size: 14px; color: var(--neutral-60); margin: 0 0 1rem 0; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; font-family: var(--mono-font); }
 .adv-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.2rem; }
 .adv-label { font-size: 14px; color: var(--neutral-60); margin: 0 0 0.3rem 0; font-family: var(--mono-font); }
@@ -79,27 +83,30 @@ input, select, textarea, button, .btn { border-radius: 4px; }
 .btn:hover { border-color: var(--neutral-80); background: var(--neutral-20); }
 .btn-primary { background: var(--neutral-100); color: var(--neutral-0); border-color: var(--neutral-100); }
 .btn-primary:hover { background: var(--neutral-80); border-color: var(--neutral-80); }
+.sb-actions { display: flex; gap: 0.4rem; margin-top: 0.4rem; }
+.ctrl-group { display:flex; flex-direction:column; gap:0.75rem; }
+.ctrl-label { font-size:13px; color:var(--neutral-60); margin:0 0 0.3rem 0; font-weight:600; }
+.ctrl-row { display:flex; gap:0.25rem; }
+.ctrl-btn { padding:0.4rem 1rem; font-size:14px; font-weight:600; flex:1; border:1px solid var(--neutral-40); background:var(--neutral-0); cursor:pointer; transition:all 0.15s; color:var(--neutral-100); font-family:var(--mono-font); }
+.ctrl-btn:hover { border-color:var(--neutral-80); background:var(--neutral-20); }
+.ctrl-btn.active { background:var(--neutral-100); color:var(--neutral-0); border-color:var(--neutral-100); }
+.ctrl-btn.active:hover { background:var(--neutral-80); border-color:var(--neutral-80); }
 .kpi-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 0.75rem; margin-bottom: 1.5rem; }
-.kpi-card { background: var(--neutral-20); border: 1px solid var(--neutral-40); padding: 1.25rem; }
+.kpi-card { background: var(--neutral-20); padding: 1.25rem; transition: background 0.15s; border-radius: 6px; }
+.kpi-card:hover { background: var(--neutral-30); }
 .kpi-label { font-size: 14px; color: var(--neutral-60); text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 0.3rem 0; }
 .kpi-value { font-size: 1.8rem; font-weight: 700; color: var(--neutral-100); margin: 0; }
 .chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin: 1rem 0; }
 .chart-grid .full { grid-column: 1 / -1; }
-.chart-box { background: var(--neutral-0); border: 1px solid var(--neutral-40); padding: 0.75rem 1rem; }
+.chart-box { background: var(--neutral-20); padding: 1rem 1.25rem; transition: background 0.15s; border-radius: 6px; }
+.chart-box:hover { background: var(--neutral-30); }
 .chart-box h3 { font-size: 16px; font-weight: 600; color: var(--neutral-100); margin-bottom: 0.3rem; }
 .chart-box canvas { max-height: 504px; }
-.footer { background: var(--footer-bg); color: var(--neutral-60); margin-top: 1.5rem; padding: 1.5rem 0 1rem 0; font-size: 14px; }
-.footer-grid { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 1.5rem; }
-.footer h4 { color: var(--neutral-0); font-size: 21px; font-weight: 400; margin: 0 0 0.3rem 0; letter-spacing: -0.01em; text-transform: uppercase; }
-.footer h5 { color: var(--neutral-0); font-weight: 600; margin: 0 0 0.3rem 0; font-size: 16px; text-transform: none; }
-.footer p { margin: 0.1rem 0; }
-.footer .dim { color: var(--neutral-80); }
-.footer a { color: var(--neutral-60); transition: color 0.15s; }
-.footer a:hover { color: var(--neutral-0); }
-.footer-bottom { text-align: center; margin-top: 1rem; border-top: 1px solid var(--footer-border); padding-top: 0.8rem; font-size: 14px; color: var(--neutral-80); }
+
 .theme-toggle { display: inline-flex; align-items: center; gap: 0.4rem; cursor: pointer; background: none; border: none; padding: 0.3rem; color: var(--neutral-60); font-size: 14px; font-family: var(--mono-font); transition: color 0.15s; }
 .theme-toggle:hover { color: var(--neutral-100); }
-.theme-toggle i { font-size: 16px; }
+.theme-toggle i { font-size: 24px; }
+.c-header__nav a { text-transform:uppercase; }
 [data-theme="dark"] .theme-toggle .icon-sun { display: inline; }
 [data-theme="dark"] .theme-toggle .icon-moon { display: none; }
 .theme-toggle .icon-sun { display: none; }
@@ -110,49 +117,19 @@ input, select, textarea, button, .btn { border-radius: 4px; }
 <body>
 
 <!-- HEADER -->
-<header class="c-header">
-<div class="c-header__content">
-    <div class="c-header__left">
-        <div class="c-main-logo">
-            <a href="/" aria-label="Go to the home page">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 40" fill="none">
-                    <text x="0" y="30" font-family="'Work Sans',sans-serif" font-weight="700" font-size="20" fill="currentColor">Mapa de proyectos audiovisuales</text>
-                </svg>
-            </a>
-        </div>
-        <nav class="c-header__nav">
-            <a href="/">Proyectos</a>
-            <a href="/timeline">Timeline</a>
-            <a href="/graph">Grafo</a>
-            <a href="/dashboard" class="active">Dashboard</a>
-            <a href="/mapa">Mapa</a>
-        </nav>
-    </div>
-    <div class="c-header__right">
-        <button type="button" class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle dark mode">
-            <i class="fa-regular fa-sun icon-sun"></i>
-            <i class="fa-regular fa-moon icon-moon"></i>
-        </button>
-        <div class="c-header__lang">
-            <span class="active-lang">es</span>
-
-        </div>
-    </div>
-</div>
-</header>
+{% include '_navbar.html' %}
 
 <!-- MAIN -->
 <div class="wrap">
-<div class="dash-layout">
+<div class="layout">
 
-    <aside class="dash-sidebar">
+    <aside class="sidebar">
 
         <h1 class="page-title">Dashboard</h1>
 
         <!-- FILTERS -->
-        <div id="filter-area">
-        <p class="filter-label">Filter by edition</p>
-        <div class="filter-row">
+        <p class="filter-label">Edición</p>
+        <div class="filter-row-sb">
             <label>Desde</label>
             <select id="f-yf" onchange="refreshDashboard()">
                 {% for a in anios %}
@@ -165,28 +142,40 @@ input, select, textarea, button, .btn { border-radius: 4px; }
                 <option value="{{ a }}" {{ 'selected' if yt == a }}>{{ a }}</option>
                 {% endfor %}
             </select>
-            <label>Línea</label>
+        </div>
+
+        <p class="filter-label">Línea</p>
+        <div class="filter-row-sb">
             <select id="f-la" onchange="refreshDashboard()">
                 <option value="">Todas</option>
                 {% for l in lineas %}
                 <option value="{{ l }}" {{ 'selected' if la|length == 1 and l in la }}>{{ l }}</option>
                 {% endfor %}
             </select>
-            <label>Región</label>
+        </div>
+
+        <p class="filter-label">Región</p>
+        <div class="filter-row-sb">
             <select id="f-rf" onchange="refreshDashboard()">
                 <option value="">Todas</option>
                 {% for r in regiones %}
                 <option value="{{ r }}" {{ 'selected' if rf|length == 1 and r in rf }}>{{ r }}</option>
                 {% endfor %}
             </select>
-            <label>Modalidad</label>
+        </div>
+
+        <p class="filter-label">Modalidad</p>
+        <div class="filter-row-sb">
             <select id="f-mf" onchange="refreshDashboard()">
                 <option value="">Todas</option>
                 {% for m in modalidades %}
                 <option value="{{ m }}" {{ 'selected' if mf|length == 1 and m in mf }}>{{ m[:30] }}</option>
                 {% endfor %}
             </select>
-            <button class="btn btn-primary" onclick="document.getElementById('f-yf').value='{{ anios[0] }}';document.getElementById('f-yt').value='{{ anios[-1] }}';document.getElementById('f-la').value='';document.getElementById('f-rf').value='';document.getElementById('f-mf').value='';document.getElementById('f-tp').value='';document.getElementById('f-mmn').value='0';document.getElementById('f-mm').value='999999999';refreshDashboard()">Reset</button>
+        </div>
+
+        <div class="sb-actions">
+            <button class="btn" onclick="document.getElementById('f-yf').value='{{ anios[0] }}';document.getElementById('f-yt').value='{{ anios[-1] }}';document.getElementById('f-la').value='';document.getElementById('f-rf').value='';document.getElementById('f-mf').value='';document.getElementById('f-tp').value='';document.getElementById('f-mmn').value='0';document.getElementById('f-mm').value='999999999';refreshDashboard()">Reset</button>
         </div>
 
         <button type="button" class="adv-toggle" onclick="toggleAdv()">Advanced filters</button>
@@ -212,33 +201,31 @@ input, select, textarea, button, .btn { border-radius: 4px; }
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- DASHBOARD CONTROLS (in sidebar) -->
+    <!-- DASHBOARD CONTROLS -->
     <div class="sidebar-section">
         <h3>Controles</h3>
-        <div style="display:flex;flex-direction:column;gap:0.75rem;">
+        <div class="ctrl-group">
             <div>
-                <p style="font-size:13px;color:var(--neutral-60);margin:0 0 0.3rem 0;font-weight:600;">Métrica</p>
-                <div style="display:flex;gap:0.25rem;">
-                    <button id="ctrl-metric-cnt" class="btn btn-primary" onclick="setMetric('cnt')" style="padding:0.4rem 1rem;font-size:14px;font-weight:600;flex:1;">Cantidad</button>
-                    <button id="ctrl-metric-amt" class="btn" onclick="setMetric('amt')" style="padding:0.4rem 1rem;font-size:14px;font-weight:600;flex:1;">Monto (S/)</button>
+                <p class="ctrl-label">Métrica</p>
+                <div class="ctrl-row">
+                    <button id="ctrl-metric-cnt" class="ctrl-btn active" onclick="setMetric('cnt')">Cantidad</button>
+                    <button id="ctrl-metric-amt" class="ctrl-btn" onclick="setMetric('amt')">Monto (S/)</button>
                 </div>
             </div>
             <div>
-                <p style="font-size:13px;color:var(--neutral-60);margin:0 0 0.3rem 0;font-weight:600;">Gráfico evolución</p>
-                <div style="display:flex;gap:0.25rem;">
-                    <button id="ctrl-chart-line" class="btn btn-primary" onclick="setChartType('line')" style="padding:0.4rem 1rem;font-size:14px;font-weight:600;flex:1;">Línea</button>
-                    <button id="ctrl-chart-bar" class="btn" onclick="setChartType('bar')" style="padding:0.4rem 1rem;font-size:14px;font-weight:600;flex:1;">Barra</button>
+                <p class="ctrl-label">Gráfico evolución</p>
+                <div class="ctrl-row">
+                    <button id="ctrl-chart-line" class="ctrl-btn active" onclick="setChartType('line')">Línea</button>
+                    <button id="ctrl-chart-bar" class="ctrl-btn" onclick="setChartType('bar')">Barra</button>
                 </div>
             </div>
-
         </div>
     </div>
 
     </aside>
 
-    <main class="dash-main">
+    <main class="content">
 
     <!-- KPI CARDS -->
     <div class="kpi-grid" id="kpi-area">
@@ -326,33 +313,6 @@ input, select, textarea, button, .btn { border-radius: 4px; }
 
 </div>
 
-<!-- FOOTER -->
-<div class="footer">
-<div class="wrap">
-    <div class="footer-grid">
-        <div>
-            <h4>Mapa de proyectos audiovisuales</h4>
-            <p>Estímulos Económicos del Ministerio</p>
-            <p>de Cultura del Perú</p>
-            <p class="dim">Solo lectura</p>
-        </div>
-        <div>
-            <h5>Explore the website</h5>
-            <p><a href="/">Proyectos</a> · <a href="/timeline">Timeline</a> · <a href="/graph">Grafo</a> · <a href="/dashboard">Dashboard</a></p>
-        </div>
-        <div>
-            <h5>Database</h5>
-            <p>{{ total_db }} proyectos</p>
-            <p>{{ monto_db }} otorgados</p>
-            <p class="dim">SQLite · 14 tablas</p>
-        </div>
-    </div>
-    <div class="footer-bottom">
-        Powered by Flask · Datos DAFO · Chart.js
-    </div>
-</div>
-</div>
-
 <script>
 var ACTIVE_METRIC = 'cnt';
 var ACTIVE_CHART_TYPE = 'line';
@@ -374,8 +334,8 @@ function toggleAdv() {
 
 function setMetric(m) {
     ACTIVE_METRIC = m;
-    document.getElementById('ctrl-metric-cnt').className = m === 'cnt' ? 'btn btn-primary' : 'btn';
-    document.getElementById('ctrl-metric-amt').className = m === 'amt' ? 'btn btn-primary' : 'btn';
+    document.getElementById('ctrl-metric-cnt').className = 'ctrl-btn' + (m === 'cnt' ? ' active' : '');
+    document.getElementById('ctrl-metric-amt').className = 'ctrl-btn' + (m === 'amt' ? ' active' : '');
     Object.values(CHARTS).forEach(function(c) { if (c) c.destroy(); });
     CHARTS = {};
     refreshDashboard();
@@ -383,8 +343,8 @@ function setMetric(m) {
 
 function setChartType(t) {
     ACTIVE_CHART_TYPE = t;
-    document.getElementById('ctrl-chart-line').className = t === 'line' ? 'btn btn-primary' : 'btn';
-    document.getElementById('ctrl-chart-bar').className = t === 'bar' ? 'btn btn-primary' : 'btn';
+    document.getElementById('ctrl-chart-line').className = 'ctrl-btn' + (t === 'line' ? ' active' : '');
+    document.getElementById('ctrl-chart-bar').className = 'ctrl-btn' + (t === 'bar' ? ' active' : '');
     Object.values(CHARTS).forEach(function(c) { if (c) c.destroy(); });
     CHARTS = {};
     refreshDashboard();
