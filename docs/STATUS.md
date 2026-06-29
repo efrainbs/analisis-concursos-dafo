@@ -1,6 +1,6 @@
 # DAFO Extraction — Status
 
-> Última actualización: 2026-06-24 — Nombres con "/" y "S/" corregidos (33 nuevas personas creadas de splits)
+> Última actualización: 2026-06-29 — Intro page como landing, correcciones CPA 2020
 
 ## Estado actual de la DB
 
@@ -12,15 +12,27 @@ Año   Resols  Posts   Con mod   Total S/.
 2023    116    190     190      23,082,500
 2022     80    172     172      18,894,532
 2021    125    229     229      17,138,559
-2020     25    139     139      18,529,338
+2020     25    136     136      17,839,338
 2019     60    182     182      22,382,952
 ```
 
-**Total: 1300 proyectos, 1166 obras, 2127 personas (731 jurídicas, 1396 naturales), 576 resoluciones, 121 eventos internacionales, S/ 151,230,678.**
+**Total: 1299 proyectos, 1166 obras, 2127 personas (731 jurídicas, 1396 naturales), 577 resoluciones, 121 eventos internacionales, S/ 150,720,678.**
 **Cobertura de modalidad: 1300/1300 (100%).**
 **Cobertura obra.tipo: 1166/1166 (100%).**
 
 ## Lo que se hizo (nuevo)
+
+### Intro page como landing + film grain + loader SVG
+- Rediseño completo de `templates/intro.html`: splash con SVG animado (nodos coloreados como el grafo D3, líneas sutiles), film grain con `mix-blend-mode: multiply`, fondo blanco consistente con el resto de la web.
+- La raíz `/` ahora sirve la intro; el buscador se movió a `/proyectos`.
+- Navbar actualizado: logo y enlace "Proyectos" apuntan a `/proyectos`.
+- Transición suave con curtain + fade-out al navegar a Proyectos/Dashboard.
+
+### CPA 2020 — duplicado eliminado y resolución vinculada
+- **Duplicado BOBO** (proyecto ID 61995) eliminado — mismo título, beneficiario y monto que 61994.
+- **Resolución `000331-2020-DGIA/MC`** creada desde PDF `2020-CPA-FalloFinalJurado.pdf` que no se había importado.
+- Vinculada a los 2 proyectos CPA 2020 (61993 ROBOTRASH, 61994 BOBO).
+- **Resultado: 0 proyectos CPA 2020 sin RD.**
 
 ### EDI — modalidades asignadas (Comercial / Alternativa / En línea)
 - `fix_edi_modalidades.py`: Extrajo el tipo de distribución de los 79 RDs individuales de EDI.

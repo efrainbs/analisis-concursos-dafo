@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Mapa de proyectos audiovisuales</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+<script>
+(function() {
+  var t = localStorage.getItem('dafo-theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+<style>
+:root {
+  --neutral-100: #0D1B2A; --neutral-80: #384450; --neutral-60: #777F87;
+  --neutral-40: #E1E3E5; --neutral-30: #F0F1F2; --neutral-20: #FAFBFB;
+  --neutral-0: #FFF; --primary: #E80247;
+  --body-font: 'Work Sans', sans-serif; --mono-font: 'IBM Plex Mono', monospace;
+}
+[data-theme="dark"] {
+  --neutral-100: #FFF; --neutral-80: #BBBFC3; --neutral-60: #92989F;
+  --neutral-40: #2E3A47; --neutral-30: #1D2A38; --neutral-20: #152231;
+  --neutral-0: #1A2D42; --primary: #FF4775;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: var(--body-font); background: var(--neutral-0); color: var(--neutral-100);
+  -webkit-font-smoothing: antialiased; font-size: 100%; font-weight: 400; line-height: 1.5;
+  min-height: 100vh; display: flex; justify-content: center; align-items: center;
+  position: relative;
+  overflow: hidden;
+}
+a { color: inherit; text-decoration: none; }
+
+.noise {
+  position: fixed; inset: 0; z-index: 9999; pointer-events: none;
+  mix-blend-mode: multiply;
+  opacity: 0.15;
+  background-image: url("{{ url_for('static', filename='film-grain-sprite.png') }}");
+  background-size: 256px 5100px;
+  background-repeat: repeat;
+  animation: grain-cycle 2s steps(30) infinite, film-weave 4s ease-in-out infinite;
+}
+
+@keyframes grain-cycle {
+  100% { background-position: 0 -5100px; }
+}
+
+@keyframes film-weave {
+  0%, 100% { transform: translate(0, 0); }
+  25% { transform: translate(0.3px, 0.1px); }
+  50% { transform: translate(-0.2px, 0.4px); }
+  75% { transform: translate(0.1px, -0.3px); }
+}
+
+.curtain {
+  position: fixed; top: 0; left: 0; width: 100%; height: 0;
+  z-index: 10000; background: var(--neutral-0);
+  transition: height 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+}
+.curtain.drop { height: 100%; }
+.fade-out { opacity: 0; transition: opacity 0.35s ease 0.15s; }
+
+.splash {
+  position: fixed; inset: 0; z-index: 100;
+  display: flex; flex-direction: column; justify-content: center; align-items: center;
+  background: transparent;
+  transition: opacity 0.5s ease, visibility 0.5s ease;
+}
+.splash.hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.g {
+  width: 150px; height: 150px;
+  position: relative;
+}
+.g svg { display: block; }
+.g line { stroke: var(--neutral-60); stroke-width: 0.5; stroke-opacity: 0.2; vector-effect: non-scaling-stroke; }
+.g .l-edges { stroke: var(--neutral-60); stroke-width: 0.3; stroke-opacity: 0.12; }
+.g .n { will-change: transform; }
+.n1 { animation: f1 4s ease-in-out infinite; }
+.n2 { animation: f2 4.5s ease-in-out infinite; }
+.n3 { animation: f3 5s ease-in-out infinite; }
+.n4 { animation: f4 3.8s ease-in-out infinite; }
+.n5 { animation: f5 4.2s ease-in-out infinite; }
+.n6 { animation: f6 4.8s ease-in-out infinite; }
+.nc { animation: cp 3s ease-in-out infinite; }
+.l1 { animation: f1 4s ease-in-out infinite; }
+.l2 { animation: f2 4.5s ease-in-out infinite; }
+.l3 { animation: f3 5s ease-in-out infinite; }
+.l4 { animation: f4 3.8s ease-in-out infinite; }
+.l5 { animation: f5 4.2s ease-in-out infinite; }
+.l6 { animation: f6 4.8s ease-in-out infinite; }
+.r { fill: none; stroke: var(--primary); stroke-width: 0.5; opacity: 0.15; }
+.r1 { animation: rp1 4s ease-in-out infinite; }
+.r2 { animation: rp2 5s ease-in-out infinite; }
+
+@keyframes f1 {
+  0%,100% { transform: translate(0,0); }
+  33% { transform: translate(5px,-4px); }
+  66% { transform: translate(-4px,5px); }
+}
+@keyframes f2 {
+  0%,100% { transform: translate(0,0); }
+  33% { transform: translate(-5px,-4px); }
+  66% { transform: translate(4px,5px); }
+}
+@keyframes f3 {
+  0%,100% { transform: translate(0,0); }
+  33% { transform: translate(-4px,5px); }
+  66% { transform: translate(5px,-4px); }
+}
+@keyframes f4 {
+  0%,100% { transform: translate(0,0); }
+  33% { transform: translate(5px,4px); }
+  66% { transform: translate(-4px,-4px); }
+}
+@keyframes f5 {
+  0%,100% { transform: translate(0,0); }
+  33% { transform: translate(-4px,-4px); }
+  66% { transform: translate(5px,4px); }
+}
+@keyframes f6 {
+  0%,100% { transform: translate(0,0); }
+  33% { transform: translate(4px,4px); }
+  66% { transform: translate(-5px,-4px); }
+}
+@keyframes cp {
+  0%,100% { opacity: 0.35; transform: scale(0.85); }
+  50% { opacity: 0.65; transform: scale(1.15); }
+}
+@keyframes rp1 {
+  0%,100% { r: 10px; opacity: 0.15; }
+  50% { r: 18px; opacity: 0.02; }
+}
+@keyframes rp2 {
+  0%,100% { r: 6px; opacity: 0.12; }
+  50% { r: 14px; opacity: 0.01; }
+}
+
+.loading-text {
+  margin-top: 1.5rem;
+  font-size: 15px;
+  font-family: var(--mono-font);
+  color: var(--neutral-60);
+  letter-spacing: 0.08em;
+  animation: blink 1s ease-in-out infinite;
+}
+@keyframes blink {
+  0%,100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+
+.main {
+  position: relative; z-index: 2;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+.main.visible {
+  opacity: 1;
+}
+
+.hero-title {
+  font-family: var(--body-font);
+  font-size: 64px;
+  font-weight: 650;
+  font-style: italic;
+  letter-spacing: -0.025em;
+  color: var(--neutral-100);
+  margin-bottom: 0.75rem;
+  line-height: 0.98;
+}
+.hero-sub {
+  font-size: 22px;
+  font-weight: 400;
+  color: var(--neutral-60);
+  line-height: 1.55;
+  margin-bottom: 0.4rem;
+}
+.hero-meta {
+  font-size: 16px;
+  font-family: var(--mono-font);
+  color: var(--neutral-80);
+  opacity: 0.75;
+  line-height: 1.6;
+}
+
+.hero-divider {
+  width: 40px;
+  height: 2px;
+  background: var(--neutral-40);
+  margin: 1.25rem 0 1.25rem 0;
+}
+
+.hero-body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4rem;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+.hero-text { text-align: left; }
+.hero-actions { flex-shrink: 0; }
+
+.buttons { display: flex; flex-direction: column; gap: 0.75rem; }
+.btn {
+  padding: 0.75rem 2rem; border-radius: 4px; font-size: 14px;
+  font-family: var(--mono-font); border: 1px solid var(--neutral-40);
+  background: var(--neutral-0); color: var(--neutral-100); cursor: pointer;
+  transition: all 0.15s; text-decoration: none; display: inline-block; letter-spacing: 0.02em;
+}
+.btn:hover { border-color: var(--neutral-100); background: var(--neutral-30); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+.btn-primary { background: var(--neutral-100); color: var(--neutral-0); border-color: var(--neutral-100); }
+.btn-primary:hover { background: #1A2D42; border-color: #1A2D42; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.25); }
+
+.theme-toggle {
+  position: fixed; top: 1.5rem; right: 1.5rem;
+  display: inline-flex; align-items: center; gap: 0.4rem; cursor: pointer;
+  background: none; border: none; padding: 0.3rem; color: var(--neutral-60);
+  font-size: 14px; font-family: var(--mono-font); transition: color 0.15s; z-index: 10;
+}
+.theme-toggle:hover { color: var(--neutral-100); }
+.theme-toggle i { font-size: 24px; }
+[data-theme="dark"] .theme-toggle .icon-sun { display: inline; }
+[data-theme="dark"] .theme-toggle .icon-moon { display: none; }
+.theme-toggle .icon-sun { display: none; }
+.theme-toggle .icon-moon { display: inline; }
+</style>
+</head>
+<body>
+
+<div class="noise"></div>
+
+<div class="curtain" id="curtain"></div>
+
+<div class="splash" id="splash">
+  <svg class="g" viewBox="0 0 150 150" width="150" height="150">
+    <circle class="r r1" cx="75" cy="75" />
+    <circle class="r r2" cx="75" cy="75" />
+    <g class="l1"><line x1="43" y1="25" x2="72" y2="72" /></g>
+    <g class="l2"><line x1="93" y1="25" x2="72" y2="72" /></g>
+    <g class="l3"><line x1="20" y1="70" x2="72" y2="72" /></g>
+    <g class="l4"><line x1="120" y1="70" x2="72" y2="72" /></g>
+    <g class="l5"><line x1="45" y1="113" x2="72" y2="72" /></g>
+    <g class="l6"><line x1="95" y1="113" x2="72" y2="72" /></g>
+    <line x1="43" y1="25" x2="93" y2="25" class="l-edges" />
+    <line x1="20" y1="70" x2="120" y2="70" class="l-edges" />
+    <line x1="45" y1="113" x2="95" y2="113" class="l-edges" />
+    <circle class="n n1" cx="43" cy="25" r="7" fill="#FFB74D" />
+    <circle class="n n2" cx="93" cy="25" r="7" fill="#64B5F6" />
+    <circle class="n n3" cx="20" cy="70" r="5.5" fill="#81C784" />
+    <circle class="n n4" cx="120" cy="70" r="5.5" fill="#E57373" />
+    <circle class="n n5" cx="45" cy="113" r="5" fill="#64B5F6" />
+    <circle class="n n6" cx="95" cy="113" r="5" fill="#FFB74D" />
+    <circle class="nc" cx="72" cy="72" r="3" fill="#E80247" />
+  </svg>
+  <p class="loading-text">Preparando datos</p>
+</div>
+
+<div class="main" id="main">
+  <div class="hero-body">
+    <div class="hero-text">
+      <p class="hero-title">Mapa de proyectos<br>audiovisuales</p>
+      <p class="hero-sub">Datos y análisis de los proyectos<br>cinematográficos y audiovisuales que<br>recibieron estímulos entre 2019 y 2025.<br>Busca y compara proyectos por años,<br>regiones y líneas de estímulos.</p>
+      <div class="hero-divider"></div>
+      <p class="hero-meta">Datos públicos recolectados automáticamente<br>desde la web del Ministerio de Cultura del Perú.<br>El procedimiento puede generar datos errados,<br>faltantes o inconsistentes.</p>
+    </div>
+    <div class="hero-actions">
+      <div class="buttons">
+        <a href="#" class="btn btn-primary" onclick="goto(event, '/proyectos')">Ver proyectos</a>
+        <a href="#" class="btn" onclick="goto(event, '/dashboard')">Ver análisis</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function toggleTheme() {
+  document.documentElement.setAttribute('data-theme',
+    document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+  localStorage.setItem('dafo-theme',
+    document.documentElement.getAttribute('data-theme'));
+}
+
+setTimeout(function() {
+  document.getElementById('splash').classList.add('hidden');
+  document.getElementById('main').classList.add('visible');
+}, 4000);
+
+function goto(e, url) {
+  e.preventDefault();
+  document.getElementById('curtain').classList.add('drop');
+  document.getElementById('main').classList.add('fade-out');
+  setTimeout(function() { window.location.href = url; }, 700);
+}
+</script>
+</body>
+</html>

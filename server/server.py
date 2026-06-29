@@ -27,7 +27,11 @@ OBRA_TIPO_LABELS = {
     "gestion": "Gestión", "trayectoria": "Trayectoria",
     "distribucion": "Distribución",
 }
-app = Flask(__name__, template_folder="../templates")
+app = Flask(__name__,
+            template_folder="../templates",
+            static_folder="../static",
+            static_url_path="/static",
+            root_path=str(Path(__file__).resolve().parent))
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 
 
@@ -100,6 +104,10 @@ def build_page_url(p, current_args):
 
 
 @app.route("/")
+def intro():
+    return render_template("intro.html")
+
+@app.route("/proyectos")
 def index():
     q, yf_val, yt_val, la, rf, mf, otf, tp, mm_val, mmn_val, adv = parse_filters()
 
