@@ -40,11 +40,12 @@ a { color: inherit; text-decoration: none; }
 [data-theme="dark"] .c-header::after { background: linear-gradient(to bottom, rgba(13,27,42,0.8), transparent); }
 .c-header__content { max-width: 90vw; margin: 0 auto; padding: 1rem 0.5rem; display: flex; align-items: center; justify-content: space-between; }
 .theme-toggle i { font-size: 24px; }
-.c-header__nav a { text-transform:uppercase; }
 .c-header__left { display: flex; align-items: center; gap: 2.5rem; }
 .c-main-logo { display: flex; align-items: center; }
 .c-main-logo svg { height: 28px; width: auto; }
 .c-header__right { display: flex; align-items: center; gap: 1rem; font-size: 14px; color: var(--neutral-60); }
+.c-header__right a { color: inherit; transition: color 0.15s; }
+.c-header__right a:hover { color: var(--neutral-100); }
 .c-header__nav { display: flex; gap: 1.5rem; font-size: 14px; }
 .c-header__nav a { color: inherit; transition: color 0.15s; }
 .c-header__nav a:hover, .c-header__nav a.active { color: var(--neutral-100); font-weight: 600; }
