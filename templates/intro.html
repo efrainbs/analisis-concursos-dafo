@@ -39,7 +39,7 @@ a { color: inherit; text-decoration: none; }
 .noise {
   position: fixed; inset: 0; z-index: 9999; pointer-events: none;
   mix-blend-mode: multiply;
-  opacity: 0.15;
+  opacity: 0.25;
   background-image: url("{{ url_for('static', filename='film-grain-sprite.png') }}");
   background-size: 256px 5100px;
   background-repeat: repeat;
@@ -64,7 +64,50 @@ a { color: inherit; text-decoration: none; }
   pointer-events: none;
 }
 .curtain.drop { height: 100%; }
-.fade-out { opacity: 0; transition: opacity 0.35s ease 0.15s; }
+
+.main-in .hero-title,
+.main-in .hero-sub,
+.main-in .hero-divider,
+.main-in .hero-meta,
+.main-in .hero-actions {
+  opacity: 0; transform: translateY(24px);
+}
+.main-in.visible .hero-title {
+  animation: riseUp 0.5s ease 0.1s forwards;
+}
+.main-in.visible .hero-sub {
+  animation: riseUp 0.5s ease 0.25s forwards;
+}
+.main-in.visible .hero-divider {
+  animation: riseUp 0.4s ease 0.4s forwards;
+}
+.main-in.visible .hero-meta {
+  animation: riseUp 0.5s ease 0.5s forwards;
+}
+.main-in.visible .hero-actions {
+  animation: riseUp 0.5s ease 0.65s forwards;
+}
+
+@keyframes riseUp {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.main-out .hero-title,
+.main-out .hero-sub,
+.main-out .hero-divider,
+.main-out .hero-meta,
+.main-out .hero-actions {
+  animation: dropDown 0.3s ease forwards;
+}
+.main-out .hero-actions { animation-delay: 0s; }
+.main-out .hero-meta { animation-delay: 0.08s; }
+.main-out .hero-divider { animation-delay: 0.16s; }
+.main-out .hero-sub { animation-delay: 0.24s; }
+.main-out .hero-title { animation-delay: 0.32s; }
+
+@keyframes dropDown {
+  to { opacity: 0; transform: translateY(20px); }
+}
 
 .splash {
   position: fixed; inset: 0; z-index: 100;
@@ -161,11 +204,6 @@ a { color: inherit; text-decoration: none; }
 
 .main {
   position: relative; z-index: 2;
-  opacity: 0;
-  transition: opacity 0.6s ease;
-}
-.main.visible {
-  opacity: 1;
 }
 
 .hero-title {
@@ -266,7 +304,7 @@ a { color: inherit; text-decoration: none; }
   <p class="loading-text">Preparando datos</p>
 </div>
 
-<div class="main" id="main">
+<div class="main main-in" id="main">
   <div class="hero-body">
     <div class="hero-text">
       <p class="hero-title">Mapa de proyectos<br>audiovisuales</p>
@@ -298,9 +336,13 @@ setTimeout(function() {
 
 function goto(e, url) {
   e.preventDefault();
-  document.getElementById('curtain').classList.add('drop');
-  document.getElementById('main').classList.add('fade-out');
-  setTimeout(function() { window.location.href = url; }, 700);
+  var main = document.getElementById('main');
+  main.classList.remove('main-in');
+  main.classList.add('main-out');
+  setTimeout(function() {
+    document.getElementById('curtain').classList.add('drop');
+  }, 400);
+  setTimeout(function() { window.location.href = url; }, 800);
 }
 </script>
 </body>
