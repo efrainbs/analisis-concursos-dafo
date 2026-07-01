@@ -16,8 +16,7 @@ for r in REGIONS:
     if key not in REGION_CANON:
         REGION_CANON[key] = r.upper()
 
-DB = Path.home() / "Projects/Analisis_Concursos_DAFO/concursos_dafo"
-DB = DB.with_suffix(".db")
+DB = Path(__file__).resolve().parent.parent / "concursos_dafo.db"
 REGIONS_CANONICAL = sorted(set(r.upper() for r in REGIONS if len(r) >= 3))
 OBRA_TIPO_LABELS = {
     "audiovisual": "Obra audiovisual", "investigacion": "Investigación",

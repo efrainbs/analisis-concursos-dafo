@@ -6,8 +6,9 @@ Shared utilities for DAFO extraction pipelines.
 import os
 import re
 import sqlite3
+from pathlib import Path
 
-DB_PATH = os.path.expanduser("~/Projects/Analisis_Concursos_DAFO/concursos_dafo.db")
+DB_PATH = str(Path(__file__).resolve().parent / "concursos_dafo.db")
 TMP_DIR = "/tmp/dafo_pdfs"
 
 REGIONS = ['LIMA', 'CALLAO', 'AREQUIPA', 'CUSCO', 'LA LIBERTAD', 'PUNO', 'LAMBAYEQUE',

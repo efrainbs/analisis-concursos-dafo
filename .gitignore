@@ -1,6 +1,7 @@
 # Database
 *.sqlite
 *.sqlite3
+concursos_dafo.db
 
 # Python
 __pycache__/

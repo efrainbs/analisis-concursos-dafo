@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Mapa de proyectos audiovisuales</title>
+<title>Estímulos para el audiovisual peruano</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;600;700&display=swap" rel="stylesheet">
@@ -425,6 +425,15 @@ button, .btn, .btn-primary { border-radius: 4px; }
             </select>
         </div>
 
+        <p class="filter-label">Monto</p>
+        <div class="filter-row-sb">
+            <div class="range-row">
+                <label for="mmn">Min</label>
+                <input type="number" id="mmn" placeholder="0" value="{{ mmn or '0' }}" min="0">
+                <label for="mm">Max</label>
+                <input type="number" id="mm" placeholder="999999999" value="{{ mm if mm and mm != '999999999' else '' }}" min="0">
+            </div>
+        </div>
 
         <div class="sb-actions">
             <button type="button" class="btn btn-primary" onclick="applyFilters()">Aplicar</button>
@@ -903,7 +912,7 @@ window.addEventListener('resize', function(){
 });
 
 document.addEventListener('DOMContentLoaded', function() {
-    var filterIds = ['search-q', 'yf', 'yt', 'otf', 'la', 'rf', 'tp'];
+    var filterIds = ['search-q', 'yf', 'yt', 'otf', 'la', 'rf', 'tp', 'mmn', 'mm'];
     filterIds.forEach(function(id) {
         var el = document.getElementById(id);
         if (!el) return;
