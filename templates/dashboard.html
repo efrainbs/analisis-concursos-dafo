@@ -300,7 +300,9 @@ input, select, textarea, button, .btn { border-radius: 4px; }
         <div class="chart-box"><h3>Rangos de monto</h3><canvas id="ch-monto-ranges"></canvas></div>
         <div class="chart-box"><h3>Top modalidades</h3><canvas id="ch-modal"></canvas></div>
         <div class="chart-box"><h3>Departamentos</h3><canvas id="ch-dpto"></canvas></div>
-        <div class="chart-box"><h3>Tipo persona</h3><canvas id="ch-tipo"></canvas></div>
+        <div class="chart-box"><h3>Distribución por género</h3><canvas id="ch-genero-dist"></canvas></div>
+        <div class="chart-box full"><h3>Evolución por género</h3><canvas id="ch-genero-evol"></canvas></div>
+        <div class="chart-box full"><h3>Género × Línea concursable</h3><canvas id="ch-genero-linea"></canvas></div>
     </div>
 
     <p style="text-align:center;font-size:16px;color:var(--neutral-60);margin:0.5rem 0">
@@ -713,20 +715,70 @@ function refreshDashboard() {
             scales: { x: { beginAtZero: true, ticks: { callback: function(v) { return metric === 'cnt' ? v : fmtSoles(v); } } } },
         });
 
-        // ─── TIPO PERSONA (doughnut) ───
-        var tipoLabels = { 'natural': 'Natural', 'juridica': 'Jurídica', 'sin dato': 'Sin dato' };
-        var tLabels = (d.tipo || []).map(function(x) { return tipoLabels[x.tipo] || x.tipo; });
-        var tVals = (d.tipo || []).map(function(x) { return metric === 'cnt' ? x.cnt : x.total; });
-        var donutColors = [colors.bar, colors.primary, colors.grid];
-        newChart('ch-tipo', 'doughnut', tLabels, [{
-            data: tVals, backgroundColor: donutColors.slice(0, tVals.length), borderWidth: 0,
+        // ─── GÉNERO — DISTRIBUCIÓN (doughnut) ───
+        var GEN_LABELS = { 'masculino': 'Masculino', 'femenino': 'Femenino', 'indeterminado': 'Indeterminado', 'sin_dato': 'Sin dato' };
+        var gdData = d.genero_dist || [];
+        var gdLabels = gdData.map(function(x) { return GEN_LABELS[x.genero] || x.genero; });
+        var gdVals = gdData.map(function(x) { return metric === 'cnt' ? x.cnt : x.total; });
+        var gdColors = gdData.map(function(x) {
+            if (x.genero === 'masculino') return '#4A90D9';
+            if (x.genero === 'femenino') return dark ? '#FF4775' : '#E80247';
+            return '#AAA';
+        });
+        newChart('ch-genero-dist', 'doughnut', gdLabels, [{
+            data: gdVals, backgroundColor: gdColors, borderWidth: 0,
         }], {
             plugins: {
                 legend: { position: 'bottom' },
                 tooltip: { callbacks: { label: function(ctx) {
                     var val = ctx.parsed;
-                    var lb = ctx.label;
-                    return lb + ': ' + (metric === 'cnt' ? val + ' proyectos' : fmtSoles(val));
+                    return ctx.label + ': ' + (metric === 'cnt' ? val + ' proyectos' : fmtSoles(val));
+                } } },
+            },
+        });
+
+        // ─── GÉNERO — EVOLUCIÓN (line) ───
+        var geData = d.genero_evol || [];
+        var geAnios = [...new Set(geData.map(function(x) { return x.anio; }))].sort();
+        var geMap = {};
+        geData.forEach(function(x) { geMap[x.anio + '|' + x.genero] = x; });
+        var geDatasets = [
+            { label: 'Masculino', data: geAnios.map(function(a) { var v = geMap[a + '|masculino']; return v ? (metric === 'cnt' ? v.cnt : v.total) : null; }),
+              borderColor: '#4A90D9', backgroundColor: 'rgba(74,144,217,0.12)', fill: false, tension: 0.2, pointRadius: 3, borderWidth: 2 },
+            { label: 'Femenino', data: geAnios.map(function(a) { var v = geMap[a + '|femenino']; return v ? (metric === 'cnt' ? v.cnt : v.total) : null; }),
+              borderColor: dark ? '#FF4775' : '#E80247', backgroundColor: 'rgba(232,2,71,0.12)', fill: false, tension: 0.2, pointRadius: 3, borderWidth: 2 },
+        ];
+        newChart('ch-genero-evol', 'line', geAnios, geDatasets, {
+            scales: { y: { beginAtZero: true, ticks: { stepSize: 1, callback: function(v) { return metric === 'cnt' ? v : fmtSoles(v); } } } },
+            plugins: {
+                tooltip: { callbacks: { label: function(ctx) {
+                    var val = ctx.parsed.y;
+                    return ctx.dataset.label + ': ' + (metric === 'cnt' ? val + ' proyectos' : fmtSoles(val));
+                } } },
+                legend: { position: 'bottom', labels: { boxWidth: 12, padding: 6 } },
+            },
+        });
+
+        // ─── GÉNERO × LÍNEA (horizontal stacked bar) ───
+        var glData = d.genero_linea || [];
+        var glCodigos = [...new Set(glData.map(function(x) { return x.codigo; }))].sort();
+        var glMap = {};
+        glData.forEach(function(x) { glMap[x.codigo + '|' + x.genero] = x; });
+        var glDatasets = [
+            { label: 'Masculino', data: glCodigos.map(function(c) { var v = glMap[c + '|masculino']; return v ? (metric === 'cnt' ? v.cnt : v.total) : 0; }),
+              backgroundColor: '#4A90D9', borderWidth: 0, borderRadius: 2 },
+            { label: 'Femenino', data: glCodigos.map(function(c) { var v = glMap[c + '|femenino']; return v ? (metric === 'cnt' ? v.cnt : v.total) : 0; }),
+              backgroundColor: dark ? '#FF4775' : '#E80247', borderWidth: 0, borderRadius: 2 },
+        ];
+        var glLabels = glCodigos.map(function(c) { return LINEAS_DICT[c] || c; });
+        newChart('ch-genero-linea', 'bar', glLabels, glDatasets, {
+            indexAxis: 'y',
+            scales: { x: { stacked: true, beginAtZero: true, ticks: { callback: function(v) { return metric === 'cnt' ? v : fmtSoles(v); } } }, y: { stacked: true } },
+            plugins: {
+                legend: { position: 'bottom', labels: { boxWidth: 12, padding: 6 } },
+                tooltip: { callbacks: { label: function(ctx) {
+                    var val = ctx.parsed.x;
+                    return ctx.dataset.label + ': ' + (metric === 'cnt' ? val + ' proyectos' : fmtSoles(val));
                 } } },
             },
         });

@@ -386,6 +386,39 @@ def api_dashboard():
         fts_params + params,
     )
 
+    # 12. Gender distribution (only naturales)
+    g_where, g_params = build_base_where([], mmn_val, mm_val, 'natural', yf_val, yt_val, la, rf, mf, otf)
+    g_where_sql = " AND ".join(g_where)
+
+    data_genero_dist = query(
+        "SELECT COALESCE(pe.genero, 'sin_dato') as genero, "
+        "COUNT(DISTINCT p.id) as cnt, COALESCE(SUM(p.monto_otorgado),0) as total "
+        + BASE_FROM.format(fts=fts_clause)
+        + f" WHERE {g_where_sql} "
+        "GROUP BY pe.genero ORDER BY cnt DESC",
+        fts_params + g_params,
+    )
+
+    # 13. Gender × year evolution (only classified M/F)
+    data_genero_evol = query(
+        "SELECT cv.anio, pe.genero, "
+        "COUNT(DISTINCT p.id) as cnt, COALESCE(SUM(p.monto_otorgado),0) as total "
+        + BASE_FROM.format(fts=fts_clause)
+        + f" WHERE pe.genero IN ('masculino','femenino') AND {g_where_sql} "
+        "GROUP BY cv.anio, pe.genero ORDER BY cv.anio, pe.genero",
+        fts_params + g_params,
+    )
+
+    # 14. Gender × línea (only classified M/F)
+    data_genero_linea = query(
+        "SELECT lc.codigo, pe.genero, "
+        "COUNT(DISTINCT p.id) as cnt, COALESCE(SUM(p.monto_otorgado),0) as total "
+        + BASE_FROM.format(fts=fts_clause)
+        + f" WHERE pe.genero IN ('masculino','femenino') AND {g_where_sql} "
+        "GROUP BY lc.codigo, pe.genero ORDER BY lc.codigo, pe.genero",
+        fts_params + g_params,
+    )
+
     # 11. KPIs
     kpi = query_one(
         "SELECT COUNT(DISTINCT p.id) as total_proy, "
@@ -408,6 +441,9 @@ def api_dashboard():
         linea_evolucion=data_linea_evolucion,
         linea_resumen=data_linea_resumen,
         kpi=kpi,
+        genero_dist=data_genero_dist,
+        genero_evol=data_genero_evol,
+        genero_linea=data_genero_linea,
     )
 
 
