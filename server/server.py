@@ -409,7 +409,17 @@ def api_dashboard():
         fts_params + g_params,
     )
 
-    # 14. Gender × línea (only classified M/F)
+    # 14. Región × año evolution
+    data_region_evolucion = query(
+        "SELECT cv.anio, COALESCE(NULLIF(pe.region,''),'SIN DATO') as region, "
+        "COUNT(DISTINCT p.id) as cnt, COALESCE(SUM(p.monto_otorgado),0) as total "
+        + BASE_FROM.format(fts=fts_clause)
+        + f" WHERE pe.region IS NOT NULL AND pe.region != '' AND {evol_where} "
+        "GROUP BY cv.anio, pe.region ORDER BY cv.anio, pe.region",
+        fts_params + evol_params,
+    )
+
+    # 15. Gender × línea (only classified M/F)
     data_genero_linea = query(
         "SELECT lc.codigo, pe.genero, "
         "COUNT(DISTINCT p.id) as cnt, COALESCE(SUM(p.monto_otorgado),0) as total "
@@ -444,6 +454,7 @@ def api_dashboard():
         genero_dist=data_genero_dist,
         genero_evol=data_genero_evol,
         genero_linea=data_genero_linea,
+        region_evolucion=data_region_evolucion,
     )
 
 

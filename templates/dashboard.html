@@ -220,6 +220,13 @@ input, select, textarea, button, .btn { border-radius: 4px; }
                     <button id="ctrl-chart-bar" class="ctrl-btn" onclick="setChartType('bar')">Barra</button>
                 </div>
             </div>
+            <div>
+                <p class="ctrl-label">Agrupar evolución por</p>
+                <div class="ctrl-row">
+                    <button id="ctrl-group-linea" class="ctrl-btn active" onclick="setEvolGroup('linea')">Línea</button>
+                    <button id="ctrl-group-region" class="ctrl-btn" onclick="setEvolGroup('region')">Región</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -318,6 +325,7 @@ input, select, textarea, button, .btn { border-radius: 4px; }
 <script>
 var ACTIVE_METRIC = 'cnt';
 var ACTIVE_CHART_TYPE = 'line';
+var ACTIVE_EVOL_GROUP = 'linea';
 var LINEAS_DICT = {{ lineas_dict|tojson }};
 var CHARTS = {};
 
@@ -347,6 +355,15 @@ function setChartType(t) {
     ACTIVE_CHART_TYPE = t;
     document.getElementById('ctrl-chart-line').className = 'ctrl-btn' + (t === 'line' ? ' active' : '');
     document.getElementById('ctrl-chart-bar').className = 'ctrl-btn' + (t === 'bar' ? ' active' : '');
+    Object.values(CHARTS).forEach(function(c) { if (c) c.destroy(); });
+    CHARTS = {};
+    refreshDashboard();
+}
+
+function setEvolGroup(g) {
+    ACTIVE_EVOL_GROUP = g;
+    document.getElementById('ctrl-group-linea').className = 'ctrl-btn' + (g === 'linea' ? ' active' : '');
+    document.getElementById('ctrl-group-region').className = 'ctrl-btn' + (g === 'region' ? ' active' : '');
     Object.values(CHARTS).forEach(function(c) { if (c) c.destroy(); });
     CHARTS = {};
     refreshDashboard();
@@ -565,77 +582,118 @@ function refreshDashboard() {
         }
 
         // ─── EVOLUCIÓN TEMPORAL ───
+        var evolGroup = ACTIVE_EVOL_GROUP;
         var selLineas = getSelectedLineas();
-        var evolData = d.linea_evolucion || [];
-        var allAnios = [...new Set(evolData.map(function(x) { return x.anio; }))].sort();
-        var evolTitle = metric === 'cnt' ? 'Evolución — Cantidad de proyectos' : 'Evolución — Monto total (S/)';
         var selRegions = getSelectedRegions();
-        if (selRegions.length && selRegions.length < document.querySelectorAll('#region-dropdown-menu input.region-cb').length) {
-            evolTitle += ' — ' + selRegions.join(', ');
+        var evolTitle = metric === 'cnt' ? 'Evolución — Cantidad de proyectos' : 'Evolución — Monto total (S/)';
+        if (evolGroup === 'region') {
+            evolTitle += ' (por región)';
+            if (selRegions.length && selRegions.length < document.querySelectorAll('#region-dropdown-menu input.region-cb').length) {
+                evolTitle += ' — ' + selRegions.join(', ');
+            }
+        } else {
+            if (selRegions.length && selRegions.length < document.querySelectorAll('#region-dropdown-menu input.region-cb').length) {
+                evolTitle += ' — ' + selRegions.join(', ');
+            }
         }
         document.getElementById('evol-title').textContent = evolTitle;
 
-        if (chartType === 'bar') {
-            // Stacked bar per year
-            var filtered = selLineas.length ? evolData.filter(function(x) { return selLineas.indexOf(x.codigo) >= 0; }) : evolData;
-            var cods = [...new Set(filtered.map(function(x) { return x.codigo; }))].sort();
+        if (evolGroup === 'region') {
+            // ── EVOLUCIÓN POR REGIÓN ──
+            var evolData = d.region_evolucion || [];
+            var allAnios = [...new Set(evolData.map(function(x) { return x.anio; }))].sort();
+            var regs = selRegions.length ? selRegions : [...new Set(evolData.map(function(x) { return x.region; }))];
+            if (regs.length > 8) regs = regs.slice(0, 8);
             var map = {};
-            filtered.forEach(function(x) { map[x.anio + '|' + x.codigo] = x; });
-            var ds = cods.map(function(c, i) {
-                var vals = allAnios.map(function(a) {
-                    var v = map[a + '|' + c];
-                    return v ? (metric === 'cnt' ? v.cnt : v.total) : 0;
+            evolData.forEach(function(x) { map[x.anio + '|' + x.region] = x; });
+
+            if (chartType === 'bar') {
+                var ds = regs.map(function(r, i) {
+                    var vals = allAnios.map(function(a) {
+                        var v = map[a + '|' + r];
+                        return v ? (metric === 'cnt' ? v.cnt : v.total) : 0;
+                    });
+                    return { label: r, data: vals, backgroundColor: pickColor(i, regs.length, dark), borderWidth: 0, borderRadius: 2 };
                 });
-                return {
-                    label: LINEAS_DICT[c] || c, data: vals,
-                    backgroundColor: pickColor(i, cods.length, dark),
-                    borderWidth: 0, borderRadius: 2,
-                };
-            });
-            newChart('ch-evol', 'bar', allAnios, ds, {
-                indexAxis: 'y',
-                scales: { x: { stacked: true, beginAtZero: true, ticks: { stepSize: 1 } }, y: { stacked: true } },
-                plugins: { tooltip: { callbacks: { label: function(ctx) {
-                    var val = ctx.parsed.x;
-                    return (LINEAS_DICT[ctx.dataset.label] || ctx.dataset.label) + ': ' + (metric === 'cnt' ? val + ' proyectos' : fmtSoles(val));
-                } } } },
-            });
-        } else {
-            // Line chart — one line per selected line
-            var filtered = selLineas.length ? evolData.filter(function(x) { return selLineas.indexOf(x.codigo) >= 0; }) : evolData;
-            var cods = [...new Set(filtered.map(function(x) { return x.codigo; }))].sort();
-            var map = {};
-            filtered.forEach(function(x) { map[x.anio + '|' + x.codigo] = x; });
-            var ds = cods.map(function(c, i) {
-                var vals = allAnios.map(function(a) {
-                    var v = map[a + '|' + c];
-                    return v ? (metric === 'cnt' ? v.cnt : v.total) : null;
+                newChart('ch-evol', 'bar', allAnios, ds, {
+                    indexAxis: 'y',
+                    scales: { x: { stacked: true, beginAtZero: true, ticks: { stepSize: 1 } }, y: { stacked: true } },
+                    plugins: { tooltip: { callbacks: { label: function(ctx) {
+                        var val = ctx.parsed.x;
+                        return ctx.dataset.label + ': ' + (metric === 'cnt' ? val + ' proyectos' : fmtSoles(val));
+                    } } } },
                 });
-                return {
-                    label: LINEAS_DICT[c] || c, data: vals,
-                    borderColor: pickColor(i, cods.length, dark),
-                    backgroundColor: pickColor(i, cods.length, dark).replace('hsl', 'hsla').replace(')', ',0.12)'),
-                    fill: false,
-                    tension: 0.2,
-                    pointRadius: 3,
-                    borderWidth: 2,
-                };
-            });
-            if (!ds.length) {
-                ds = [{ label: 'Sin datos', data: [], borderColor: colors.grid }];
-            }
-            newChart('ch-evol', 'line', allAnios, ds, {
-                scales: {
-                    y: { beginAtZero: true, ticks: { stepSize: 1, callback: function(v) { return metric === 'cnt' ? v : fmtSoles(v); } } },
-                },
-                plugins: {
-                    tooltip: { callbacks: { label: function(ctx) {
+            } else {
+                var ds = regs.map(function(r, i) {
+                    var vals = allAnios.map(function(a) {
+                        var v = map[a + '|' + r];
+                        return v ? (metric === 'cnt' ? v.cnt : v.total) : null;
+                    });
+                    return {
+                        label: r, data: vals, borderColor: pickColor(i, regs.length, dark),
+                        backgroundColor: pickColor(i, regs.length, dark).replace('hsl', 'hsla').replace(')', ',0.12)'),
+                        fill: false, tension: 0.2, pointRadius: 3, borderWidth: 2,
+                    };
+                });
+                if (!ds.length) ds = [{ label: 'Sin datos', data: [], borderColor: colors.grid }];
+                newChart('ch-evol', 'line', allAnios, ds, {
+                    scales: { y: { beginAtZero: true, ticks: { stepSize: 1, callback: function(v) { return metric === 'cnt' ? v : fmtSoles(v); } } } },
+                    plugins: { tooltip: { callbacks: { label: function(ctx) {
                         var val = ctx.parsed.y;
                         return ctx.dataset.label + ': ' + (metric === 'cnt' ? val + ' proyectos' : fmtSoles(val));
-                    } } },
-                    legend: { position: 'bottom', labels: { boxWidth: 12, padding: 6 } },
-                },
-            });
+                    } } }, legend: { position: 'bottom', labels: { boxWidth: 12, padding: 6 } } },
+                });
+            }
+        } else {
+            // ── EVOLUCIÓN POR LÍNEA (comportamiento original) ──
+            var evolData = d.linea_evolucion || [];
+            var allAnios = [...new Set(evolData.map(function(x) { return x.anio; }))].sort();
+
+            if (chartType === 'bar') {
+                var filtered = selLineas.length ? evolData.filter(function(x) { return selLineas.indexOf(x.codigo) >= 0; }) : evolData;
+                var cods = [...new Set(filtered.map(function(x) { return x.codigo; }))].sort();
+                var map = {};
+                filtered.forEach(function(x) { map[x.anio + '|' + x.codigo] = x; });
+                var ds = cods.map(function(c, i) {
+                    var vals = allAnios.map(function(a) {
+                        var v = map[a + '|' + c];
+                        return v ? (metric === 'cnt' ? v.cnt : v.total) : 0;
+                    });
+                    return { label: LINEAS_DICT[c] || c, data: vals, backgroundColor: pickColor(i, cods.length, dark), borderWidth: 0, borderRadius: 2 };
+                });
+                newChart('ch-evol', 'bar', allAnios, ds, {
+                    indexAxis: 'y',
+                    scales: { x: { stacked: true, beginAtZero: true, ticks: { stepSize: 1 } }, y: { stacked: true } },
+                    plugins: { tooltip: { callbacks: { label: function(ctx) {
+                        var val = ctx.parsed.x;
+                        return (LINEAS_DICT[ctx.dataset.label] || ctx.dataset.label) + ': ' + (metric === 'cnt' ? val + ' proyectos' : fmtSoles(val));
+                    } } } },
+                });
+            } else {
+                var filtered = selLineas.length ? evolData.filter(function(x) { return selLineas.indexOf(x.codigo) >= 0; }) : evolData;
+                var cods = [...new Set(filtered.map(function(x) { return x.codigo; }))].sort();
+                var map = {};
+                filtered.forEach(function(x) { map[x.anio + '|' + x.codigo] = x; });
+                var ds = cods.map(function(c, i) {
+                    var vals = allAnios.map(function(a) {
+                        var v = map[a + '|' + c];
+                        return v ? (metric === 'cnt' ? v.cnt : v.total) : null;
+                    });
+                    return {
+                        label: LINEAS_DICT[c] || c, data: vals, borderColor: pickColor(i, cods.length, dark),
+                        backgroundColor: pickColor(i, cods.length, dark).replace('hsl', 'hsla').replace(')', ',0.12)'),
+                        fill: false, tension: 0.2, pointRadius: 3, borderWidth: 2,
+                    };
+                });
+                if (!ds.length) ds = [{ label: 'Sin datos', data: [], borderColor: colors.grid }];
+                newChart('ch-evol', 'line', allAnios, ds, {
+                    scales: { y: { beginAtZero: true, ticks: { stepSize: 1, callback: function(v) { return metric === 'cnt' ? v : fmtSoles(v); } } } },
+                    plugins: { tooltip: { callbacks: { label: function(ctx) {
+                        var val = ctx.parsed.y;
+                        return ctx.dataset.label + ': ' + (metric === 'cnt' ? val + ' proyectos' : fmtSoles(val));
+                    } } }, legend: { position: 'bottom', labels: { boxWidth: 12, padding: 6 } } },
+                });
+            }
         }
 
         // ─── LÍNEAS (bar) ───
