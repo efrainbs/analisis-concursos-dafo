@@ -409,16 +409,6 @@ def api_dashboard():
         fts_params + g_params,
     )
 
-    # 14. 2D evolution: año × línea × región
-    data_evolucion_2d = query(
-        "SELECT cv.anio, lc.codigo, COALESCE(NULLIF(pe.region,''),'SIN DATO') as region, "
-        "COUNT(DISTINCT p.id) as cnt, COALESCE(SUM(p.monto_otorgado),0) as total "
-        + BASE_FROM.format(fts=fts_clause)
-        + f" WHERE pe.region IS NOT NULL AND pe.region != '' AND {evol_where} "
-        "GROUP BY cv.anio, lc.codigo, pe.region ORDER BY cv.anio, lc.codigo, pe.region",
-        fts_params + evol_params,
-    )
-
     # 15. Región × año evolution
     data_region_evolucion = query(
         "SELECT cv.anio, COALESCE(NULLIF(pe.region,''),'SIN DATO') as region, "
@@ -465,7 +455,6 @@ def api_dashboard():
         genero_evol=data_genero_evol,
         genero_linea=data_genero_linea,
         region_evolucion=data_region_evolucion,
-        evolucion_2d=data_evolucion_2d,
     )
 
 
