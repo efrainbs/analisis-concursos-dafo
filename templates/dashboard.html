@@ -585,112 +585,163 @@ function refreshDashboard() {
         var evolGroup = ACTIVE_EVOL_GROUP;
         var selLineas = getSelectedLineas();
         var selRegions = getSelectedRegions();
+        var allRegionsCount = document.querySelectorAll('#region-dropdown-menu input.region-cb').length;
+        var allLineasCount = document.querySelectorAll('#linea-dropdown-menu input.linea-cb').length;
+        var regionFiltered = selRegions.length > 0 && selRegions.length < allRegionsCount;
+        var lineaFiltered = selLineas.length > 0 && selLineas.length < allLineasCount;
         var evolTitle = metric === 'cnt' ? 'Evolución — Cantidad de proyectos' : 'Evolución — Monto total (S/)';
+        var evol2d = d.evolucion_2d || [];
+
         if (evolGroup === 'region') {
             evolTitle += ' (por región)';
-            if (selRegions.length && selRegions.length < document.querySelectorAll('#region-dropdown-menu input.region-cb').length) {
-                evolTitle += ' — ' + selRegions.join(', ');
-            }
+            if (regionFiltered) evolTitle += ' — ' + selRegions.join(', ');
         } else {
-            if (selRegions.length && selRegions.length < document.querySelectorAll('#region-dropdown-menu input.region-cb').length) {
-                evolTitle += ' — ' + selRegions.join(', ');
-            }
+            if (regionFiltered) evolTitle += ' — ' + selRegions.join(', ');
         }
         document.getElementById('evol-title').textContent = evolTitle;
 
-        if (evolGroup === 'region') {
-            // ── EVOLUCIÓN POR REGIÓN ──
-            var evolData = d.region_evolucion || [];
-            var allAnios = [...new Set(evolData.map(function(x) { return x.anio; }))].sort();
-            var regs = selRegions.length ? selRegions : [...new Set(evolData.map(function(x) { return x.region; }))];
-            if (regs.length > 8) regs = regs.slice(0, 8);
-            var map = {};
-            evolData.forEach(function(x) { map[x.anio + '|' + x.region] = x; });
+        // Collect unique years from 2D data
+        var allAnios = [...new Set(evol2d.map(function(x) { return x.anio; }))].sort();
 
-            if (chartType === 'bar') {
+        // ─── BAR CHART MODE (always uses 2D data for stacked breakdown) ───
+        if (chartType === 'bar') {
+            if (evolGroup === 'region' && lineaFiltered) {
+                // Group by REGIÓN, stacked by LÍNEA
+                var regs = regionFiltered ? selRegions : [...new Set(evol2d.map(function(x) { return x.region; }))];
+                if (regs.length > 8) regs = regs.slice(0, 8);
+                var lines = selLineas;
+                var labels = [];
+                var map = {};
+                evol2d.forEach(function(x) { map[x.anio + '|' + x.region + '|' + x.codigo] = x; });
+                regs.forEach(function(r) { allAnios.forEach(function(a) { labels.push(a + '|' + r); }); });
+                var ds = lines.map(function(c, i) {
+                    var vals = labels.map(function(l) {
+                        var parts = l.split('|');
+                        var v = map[parts[0] + '|' + parts[1] + '|' + c];
+                        return v ? (metric === 'cnt' ? v.cnt : v.total) : 0;
+                    });
+                    return { label: LINEAS_DICT[c] || c, data: vals, backgroundColor: pickColor(i, lines.length, dark), borderWidth: 0, borderRadius: 2 };
+                });
+                newChart('ch-evol', 'bar', labels, ds, {
+                    indexAxis: 'y',
+                    scales: { x: { stacked: true, beginAtZero: true }, y: { stacked: true } },
+                    plugins: { tooltip: { callbacks: { label: function(ctx) {
+                        var parts = ctx.label.split('|');
+                        return parts[1] + ' · ' + ctx.dataset.label + ': ' + (metric === 'cnt' ? ctx.parsed.x + ' proyectos' : fmtSoles(ctx.parsed.x));
+                    } } } },
+                });
+            } else if (evolGroup === 'linea' && regionFiltered) {
+                // Group by LÍNEA, stacked by REGIÓN
+                var cods = lineaFiltered ? selLineas : [...new Set(evol2d.map(function(x) { return x.codigo; }))];
+                if (cods.length > 8) cods = cods.slice(0, 8);
+                var regs = selRegions;
+                var labels = [];
+                var map = {};
+                evol2d.forEach(function(x) { map[x.anio + '|' + x.codigo + '|' + x.region] = x; });
+                cods.forEach(function(c) { allAnios.forEach(function(a) { labels.push(a + '|' + c); }); });
                 var ds = regs.map(function(r, i) {
-                    var vals = allAnios.map(function(a) {
-                        var v = map[a + '|' + r];
+                    var vals = labels.map(function(l) {
+                        var parts = l.split('|');
+                        var v = map[parts[0] + '|' + parts[1] + '|' + r];
                         return v ? (metric === 'cnt' ? v.cnt : v.total) : 0;
                     });
                     return { label: r, data: vals, backgroundColor: pickColor(i, regs.length, dark), borderWidth: 0, borderRadius: 2 };
                 });
-                newChart('ch-evol', 'bar', allAnios, ds, {
+                newChart('ch-evol', 'bar', labels, ds, {
                     indexAxis: 'y',
-                    scales: { x: { stacked: true, beginAtZero: true, ticks: { stepSize: 1 } }, y: { stacked: true } },
+                    scales: { x: { stacked: true, beginAtZero: true }, y: { stacked: true } },
                     plugins: { tooltip: { callbacks: { label: function(ctx) {
-                        var val = ctx.parsed.x;
-                        return ctx.dataset.label + ': ' + (metric === 'cnt' ? val + ' proyectos' : fmtSoles(val));
+                        var parts = ctx.label.split('|');
+                        var lineaLabel = LINEAS_DICT[parts[1]] || parts[1];
+                        return parts[0] + ' · ' + lineaLabel + ' · ' + ctx.dataset.label + ': ' + (metric === 'cnt' ? ctx.parsed.x + ' proyectos' : fmtSoles(ctx.parsed.x));
                     } } } },
                 });
             } else {
+                // Simple: no cross-filter, use aggregated data
+                if (evolGroup === 'region') {
+                    var evolData = d.region_evolucion || [];
+                    var regs = regionFiltered ? selRegions : [...new Set(evolData.map(function(x) { return x.region; }))];
+                    if (regs.length > 8) regs = regs.slice(0, 8);
+                    var map = {};
+                    evolData.forEach(function(x) { map[x.anio + '|' + x.region] = x; });
+                    var ds = regs.map(function(r, i) {
+                        var vals = allAnios.map(function(a) {
+                            var v = map[a + '|' + r];
+                            return v ? (metric === 'cnt' ? v.cnt : v.total) : 0;
+                        });
+                        return { label: r, data: vals, backgroundColor: pickColor(i, regs.length, dark), borderWidth: 0, borderRadius: 2 };
+                    });
+                    newChart('ch-evol', 'bar', allAnios, ds, {
+                        indexAxis: 'y', scales: { x: { stacked: true, beginAtZero: true }, y: { stacked: true } },
+                        plugins: { tooltip: { callbacks: { label: function(ctx) {
+                            return ctx.dataset.label + ': ' + (metric === 'cnt' ? ctx.parsed.x + ' proyectos' : fmtSoles(ctx.parsed.x));
+                        } } } },
+                    });
+                } else {
+                    var evolData = d.linea_evolucion || [];
+                    var cods = lineaFiltered ? selLineas : [...new Set(evolData.map(function(x) { return x.codigo; }))];
+                    if (cods.length > 8) cods = cods.slice(0, 8);
+                    var map = {};
+                    evolData.forEach(function(x) { map[x.anio + '|' + x.codigo] = x; });
+                    var ds = cods.map(function(c, i) {
+                        var vals = allAnios.map(function(a) {
+                            var v = map[a + '|' + c];
+                            return v ? (metric === 'cnt' ? v.cnt : v.total) : 0;
+                        });
+                        return { label: LINEAS_DICT[c] || c, data: vals, backgroundColor: pickColor(i, cods.length, dark), borderWidth: 0, borderRadius: 2 };
+                    });
+                    newChart('ch-evol', 'bar', allAnios, ds, {
+                        indexAxis: 'y', scales: { x: { stacked: true, beginAtZero: true }, y: { stacked: true } },
+                        plugins: { tooltip: { callbacks: { label: function(ctx) {
+                            return (LINEAS_DICT[ctx.dataset.label] || ctx.dataset.label) + ': ' + (metric === 'cnt' ? ctx.parsed.x + ' proyectos' : fmtSoles(ctx.parsed.x));
+                        } } } },
+                    });
+                }
+            }
+        } else {
+            // ─── LINE CHART MODE (one line per primary dimension) ───
+            if (evolGroup === 'region') {
+                var evolData = d.region_evolucion || [];
+                var regs = regionFiltered ? selRegions : [...new Set(evolData.map(function(x) { return x.region; }))];
+                if (regs.length > 8) regs = regs.slice(0, 8);
+                var map = {};
+                evolData.forEach(function(x) { map[x.anio + '|' + x.region] = x; });
                 var ds = regs.map(function(r, i) {
                     var vals = allAnios.map(function(a) {
                         var v = map[a + '|' + r];
                         return v ? (metric === 'cnt' ? v.cnt : v.total) : null;
                     });
-                    return {
-                        label: r, data: vals, borderColor: pickColor(i, regs.length, dark),
+                    return { label: r, data: vals, borderColor: pickColor(i, regs.length, dark),
                         backgroundColor: pickColor(i, regs.length, dark).replace('hsl', 'hsla').replace(')', ',0.12)'),
-                        fill: false, tension: 0.2, pointRadius: 3, borderWidth: 2,
-                    };
+                        fill: false, tension: 0.2, pointRadius: 3, borderWidth: 2 };
                 });
                 if (!ds.length) ds = [{ label: 'Sin datos', data: [], borderColor: colors.grid }];
                 newChart('ch-evol', 'line', allAnios, ds, {
                     scales: { y: { beginAtZero: true, ticks: { stepSize: 1, callback: function(v) { return metric === 'cnt' ? v : fmtSoles(v); } } } },
                     plugins: { tooltip: { callbacks: { label: function(ctx) {
-                        var val = ctx.parsed.y;
-                        return ctx.dataset.label + ': ' + (metric === 'cnt' ? val + ' proyectos' : fmtSoles(val));
+                        return ctx.dataset.label + ': ' + (metric === 'cnt' ? ctx.parsed.y + ' proyectos' : fmtSoles(ctx.parsed.y));
                     } } }, legend: { position: 'bottom', labels: { boxWidth: 12, padding: 6 } } },
                 });
-            }
-        } else {
-            // ── EVOLUCIÓN POR LÍNEA (comportamiento original) ──
-            var evolData = d.linea_evolucion || [];
-            var allAnios = [...new Set(evolData.map(function(x) { return x.anio; }))].sort();
-
-            if (chartType === 'bar') {
-                var filtered = selLineas.length ? evolData.filter(function(x) { return selLineas.indexOf(x.codigo) >= 0; }) : evolData;
-                var cods = [...new Set(filtered.map(function(x) { return x.codigo; }))].sort();
-                var map = {};
-                filtered.forEach(function(x) { map[x.anio + '|' + x.codigo] = x; });
-                var ds = cods.map(function(c, i) {
-                    var vals = allAnios.map(function(a) {
-                        var v = map[a + '|' + c];
-                        return v ? (metric === 'cnt' ? v.cnt : v.total) : 0;
-                    });
-                    return { label: LINEAS_DICT[c] || c, data: vals, backgroundColor: pickColor(i, cods.length, dark), borderWidth: 0, borderRadius: 2 };
-                });
-                newChart('ch-evol', 'bar', allAnios, ds, {
-                    indexAxis: 'y',
-                    scales: { x: { stacked: true, beginAtZero: true, ticks: { stepSize: 1 } }, y: { stacked: true } },
-                    plugins: { tooltip: { callbacks: { label: function(ctx) {
-                        var val = ctx.parsed.x;
-                        return (LINEAS_DICT[ctx.dataset.label] || ctx.dataset.label) + ': ' + (metric === 'cnt' ? val + ' proyectos' : fmtSoles(val));
-                    } } } },
-                });
             } else {
-                var filtered = selLineas.length ? evolData.filter(function(x) { return selLineas.indexOf(x.codigo) >= 0; }) : evolData;
-                var cods = [...new Set(filtered.map(function(x) { return x.codigo; }))].sort();
+                var evolData = d.linea_evolucion || [];
+                var cods = lineaFiltered ? selLineas : [...new Set(evolData.map(function(x) { return x.codigo; }))];
+                if (cods.length > 8) cods = cods.slice(0, 8);
                 var map = {};
-                filtered.forEach(function(x) { map[x.anio + '|' + x.codigo] = x; });
+                evolData.forEach(function(x) { map[x.anio + '|' + x.codigo] = x; });
                 var ds = cods.map(function(c, i) {
                     var vals = allAnios.map(function(a) {
                         var v = map[a + '|' + c];
                         return v ? (metric === 'cnt' ? v.cnt : v.total) : null;
                     });
-                    return {
-                        label: LINEAS_DICT[c] || c, data: vals, borderColor: pickColor(i, cods.length, dark),
+                    return { label: LINEAS_DICT[c] || c, data: vals, borderColor: pickColor(i, cods.length, dark),
                         backgroundColor: pickColor(i, cods.length, dark).replace('hsl', 'hsla').replace(')', ',0.12)'),
-                        fill: false, tension: 0.2, pointRadius: 3, borderWidth: 2,
-                    };
+                        fill: false, tension: 0.2, pointRadius: 3, borderWidth: 2 };
                 });
                 if (!ds.length) ds = [{ label: 'Sin datos', data: [], borderColor: colors.grid }];
                 newChart('ch-evol', 'line', allAnios, ds, {
                     scales: { y: { beginAtZero: true, ticks: { stepSize: 1, callback: function(v) { return metric === 'cnt' ? v : fmtSoles(v); } } } },
                     plugins: { tooltip: { callbacks: { label: function(ctx) {
-                        var val = ctx.parsed.y;
-                        return ctx.dataset.label + ': ' + (metric === 'cnt' ? val + ' proyectos' : fmtSoles(val));
+                        return ctx.dataset.label + ': ' + (metric === 'cnt' ? ctx.parsed.y + ' proyectos' : fmtSoles(ctx.parsed.y));
                     } } }, legend: { position: 'bottom', labels: { boxWidth: 12, padding: 6 } } },
                 });
             }
